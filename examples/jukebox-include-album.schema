@@ -1,0 +1,29 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-03/schema",
+  "required": [ "albumId", "albumName", "genreCode", "artistId" ],
+  "properties": {
+    "albumId": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36
+    },
+    "albumName": {
+      "type": "string"
+    },
+    "year": {
+      "type": "string"
+    },
+    "iamgeURL": {
+      "type": "string"
+    },
+    "genreCode": {
+      "type": "string"
+    },
+    "artistId": {
+      "type": "string",
+      "minLength": 36,
+      "maxLength": 36
+    }
+  }
+}

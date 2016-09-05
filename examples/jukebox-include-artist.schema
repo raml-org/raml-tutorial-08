@@ -1,0 +1,16 @@
+{
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-04/schema",
+  "required": [ "artistName" ],
+  "properties": {
+    "artistName": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "imageURL": {
+      "type": "string"
+    }
+  }
+}

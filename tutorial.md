@@ -17,18 +17,18 @@ Let's say you are the API designer for a BookMobile startup. You've worked out a
 First, you'll enter some basic information in a text editor. You can save your API's RAML definition as a text file with a recommended extension .raml:
 
 ```yaml
-#%RAML 0.8
+#%RAML 1.0
 ---
 title: e-BookMobile API
 baseUri: http://api.e-bookmobile.com/{version}
 version: v1
 ```
 
-Everything you enter in at the [root](https://github.com/raml-org/raml-spec/blob/master/versions/raml-08/raml-08.md#root-section) (or top) of the spec applies to the rest of your API. This is going to come in very handy later as you discover patterns in how you build your API. The baseURI you choose will be used with every call made, so make sure it's as clean and concise as can be.
+Everything you enter in at the [root](https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#the-root-of-the-document) (or top) of the spec applies to the rest of your API. This is going to come in very handy later as you discover patterns in how you build your API. The baseURI you choose will be used with every call made, so make sure it's as clean and concise as can be.
 
 ## ENTER RESOURCES
 
-As a thoughtful API designer, it's important to consider how your API consumers will use your API. It's especially important because in many ways, as the API designer YOU control the consumption. For example, consider the functionality of the BookMobile API. You know you want your users to be able to keep track of what they've read and their favorites. Users should also be able to discover new books and look at other titles written by their favorite authors. To do this, you define various collections as your [resources](https://github.com/raml-org/raml-spec/blob/master/versions/raml-08/raml-08.md#resources-and-nested-resources).
+As a thoughtful API designer, it's important to consider how your API consumers will use your API. It's especially important because in many ways, as the API designer YOU control the consumption. For example, consider the functionality of the BookMobile API. You know you want your users to be able to keep track of what they've read and their favorites. Users should also be able to discover new books and look at other titles written by their favorite authors. To do this, you define various collections as your [resources](https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#resources-and-nested-resources).
 
 Recalling how your API consumers will use your API, enter the following three resources under your root:
 
@@ -234,7 +234,7 @@ This tutorial will explain and show snippets of RAML definitions. However, the b
 If you decided to be "hands-on", please clone the GitHub repository
 
 ```
-git clone https://github.com/raml-org/raml-tutorial-200.git
+git clone https://github.com/raml-org/raml-tutorial.git
 ```
 
 *Spoiler alert:* After cloning, the repository will be in its final state. You can browse the code as is, but it will be like reading the last chapter of a book.
@@ -245,7 +245,7 @@ Before each step, we recommend you "sync" the code with the step you are about t
 git checkout -f [stepX]
 ```
 
-*Note:* after cloning the repository, you will need to access to its folder on your local computer. Don’t worry! We’ll remind you each time.
+*Note:* after cloning the repository, you will need to access to its folder on your local computer and navigate to the `examples` directory. Don’t worry! We’ll remind you each time.
 
 ## USE CASE
 
@@ -332,7 +332,7 @@ As you can see in the following example (extracted from jukebox-api.raml), the r
                     "songId": "550e8400-e29b-41d4-a716-446655440222",
                     "songTitle": "Gio sorgio by Moroder"
                   }
-                  ]
+                ]
   /{songId}:
     description: Song entity
     get:
@@ -404,7 +404,7 @@ There are several ways of defining the body parameters for an HTTP method. You c
     body:
       binary/octet-stream:
       multipart/form-data:
-        formParameters:
+        properties:
           file:
             description: The file to be uploaded
             required: true
@@ -416,7 +416,7 @@ There are several ways of defining the body parameters for an HTTP method. You c
 As you can see in the POST definition, its body contains two possible content-types.
 The `binary/octet-stream` simply expects `file-content` to be sent as a parameter. It's a valid and popular technique for APIs that supporting files. Unfortunately, it makes the API impossible to call from a web browser (at least with the purpose of uploading a file).
 
-For the `multipart/form-data` (and also the `application/x-www-form-urlencoded`), it is possible to define a map of "formParameters", defining this map the same way that the rest of the RAML ones (in this case, the "file" field is required and of type "file").
+For the `multipart/form-data` (and also the `application/x-www-form-urlencoded`), it is possible to define a map of "properties", defining this map the same way that the rest of the RAML ones (in this case, the "file" field is required and of type "file").
 
 ### Schemas
 
@@ -432,7 +432,7 @@ One of the RAML supported features is the possibility of defining schemas and ap
 ```yaml
 body:
   application/json:
-    schema: |
+    type: |
       {
         "type": "object",
         "$schema": "http://json-schema.org/draft-03/schema",
@@ -482,32 +482,32 @@ One interesting RAML feature is the ability to extract the schemas and reference
 The third advantage will become clear in following sections, when trying to use "resource types" and parameterize these.
 
 ```yaml
-schemas:
- - song: |
-    {
-      "type": "object",
-      "$schema": "http://json-schema.org/draft-03/schema",
-      "id": "http://jsonschema.net",
-      "required": true,
-      "properties": {
-        "songTitle": {
-          "type": "string",
-          "required": true
-        },
-        "albumId": {
-          "type": "string",
-          "required": true,
-          "minLength": 36,
-          "maxLength": 36
-        }
+types:
+ song: |
+  {
+    "type": "object",
+    "$schema": "http://json-schema.org/draft-03/schema",
+    "id": "http://jsonschema.net",
+    "required": true,
+    "properties": {
+      "songTitle": {
+        "type": "string",
+        "required": true
+      },
+      "albumId": {
+        "type": "string",
+        "required": true,
+        "minLength": 36,
+        "maxLength": 36
       }
     }
+  }
 ```
 
 ```yaml
 body:
   application/json:
-    schema: song
+    type: song
     example: |
       {
         "songId": "550e8400-e29b-41d4-a716-446655440000",
@@ -527,7 +527,7 @@ We are definitively not saying that all RESTful APIs are the same. I don’t wan
 In that sense, we can easily identify an existing resource (to be fetched, deleted or updated), a new one (to be added to a collection) and the collection itself (to be retrieved).
 
 ```yaml
-#%RAML 0.8
+#%RAML 1.0
 title:
 
 /resources:
@@ -553,11 +553,11 @@ Similar to the last example code, where we only showed the resources and support
 
 ```yaml
 resourceTypes:
-  - collection:
-      get:
-      post:
-  - collection-item:
-      get:
+  collection:
+    get:
+    post:
+  collection-item:
+    get:
 ```
 
 As you may notice, the PUT and DELETE methods are not defined for the collection-item resourceType. This is basically because the use case does not request any resource to be deleted or updated.
@@ -589,32 +589,32 @@ So, let's extract this from one of the resources (I will take "/songs" for this 
 
 ```yaml
 resourceTypes:
-  - collection:
-      description: Collection of available songs in Jukebox
-      get:
-        description: Get a list of songs based on the song title.
-        responses:
-          200:
-            body:
-              application/json:
-      post:
-        description: |
-          Add a new song to Jukebox.
-        queryParameters:
-          access_token:
-            description: "The access token provided by the authentication application"
-            example: AABBCCDD
-            required: true
-            type: string
-        body:
-          application/json:
-            schema: song
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  { "message": "The song has been properly entered" }
+  collection:
+    description: Collection of available songs in Jukebox
+    get:
+      description: Get a list of songs based on the song title.
+      responses:
+        200:
+          body:
+            application/json:
+    post:
+      description: |
+        Add a new song to Jukebox.
+      queryParameters:
+        access_token:
+          description: "The access token provided by the authentication application"
+          example: AABBCCDD
+          required: true
+          type: string
+      body:
+        application/json:
+          type: song
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                { "message": "The song has been properly entered" }
 ```
 
 With the `collection` resourceType as it is right now, there is not much we can do. Applying it to the `/songs` resource is a possibility, but we don't want those descriptions, schemas, or even the POST response to be applied to all the resources since the collection is specific to `/songs`.
@@ -640,32 +640,32 @@ So combining this, let's update our latest code snippet:
 
 ```yaml
 resourceTypes:
-  - collection:
-      description: Collection of available <<resourcePathName>> in Jukebox.
-      get:
-        description: Get a list of <<resourcePathName>>.
-        responses:
-          200:
-            body:
-              application/json:
-      post:
-        description: |
-          Add a new <<resourcePathName|!singularize>> to Jukebox.
-        queryParameters:
-          access_token:
-            description: "The access token provided by the authentication application"
-            example: AABBCCDD
-            required: true
-            type: string
-        body:
-          application/json:
-            schema: <<resourcePathName|!singularize>>
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
+  collection:
+    description: Collection of available <<resourcePathName>> in Jukebox.
+    get:
+      description: Get a list of <<resourcePathName>>.
+      responses:
+        200:
+          body:
+            application/json:
+    post:
+      description: |
+        Add a new <<resourcePathName|!singularize>> to Jukebox.
+      queryParameters:
+        access_token:
+          description: "The access token provided by the authentication application"
+          example: AABBCCDD
+          required: true
+          type: string
+      body:
+        application/json:
+          type: <<resourcePathName|!singularize>>
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
 /songs:
   type: collection
   get:
@@ -720,22 +720,22 @@ git checkout -f step3c
 There is nothing new with this code. More resourceType definitions, parameterization, and usage:
 
 ```yaml
-- collection-item:
-      description: Entity representing a <<resourcePathName|!singularize>>
-      get:
-        description: |
-          Get the <<resourcePathName|!singularize>>
-          with <<resourcePathName|!singularize>>Id =
-          {<<resourcePathName|!singularize>>Id}
-        responses:
-          200:
-            body:
-              application/json:
-          404:
-            body:
-              application/json:
-                example: |
-                  {"message": "<<resourcePathName|!singularize>> not found" }
+collection-item:
+  description: Entity representing a <<resourcePathName|!singularize>>
+  get:
+    description: |
+      Get the <<resourcePathName|!singularize>>
+      with <<resourcePathName|!singularize>>Id =
+      {<<resourcePathName|!singularize>>Id}
+    responses:
+      200:
+        body:
+          application/json:
+      404:
+        body:
+          application/json:
+            example: |
+              {"message": "<<resourcePathName|!singularize>> not found" }
 ```
 
 ```yaml
@@ -804,54 +804,54 @@ Having said that, let's take a look at some relevant code pieces.
 
 ```yaml
 resourceTypes:
-  - collection:
-      description: Collection of available <<resourcePathName>> in Jukebox.
-      get:
-        description: Get a list of <<resourcePathName>>.
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  <<exampleCollection>>
-      post:
-        description: |
-          Add a new <<resourcePathName|!singularize>> to Jukebox.
-        queryParameters:
-          access_token:
-            description: "The access token provided by the authentication application"
-            example: AABBCCDD
-            required: true
-            type: string
-        body:
-          application/json:
-            schema: <<resourcePathName|!singularize>>
-            example: |
-              <<exampleItem>>
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
-  - collection-item:
-      description: Entity representing a <<resourcePathName|!singularize>>
-      get:
-        description: |
-          Get the <<resourcePathName|!singularize>>
-          with <<resourcePathName|!singularize>>Id =
-          {<<resourcePathName|!singularize>>Id}
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  <<exampleItem>>
-          404:
-            body:
-              application/json:
-                example: |
-                  {"message": "<<resourcePathName|!singularize>> not found" }
+  collection:
+    description: Collection of available <<resourcePathName>> in Jukebox.
+    get:
+      description: Get a list of <<resourcePathName>>.
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                <<exampleCollection>>
+    post:
+      description: |
+        Add a new <<resourcePathName|!singularize>> to Jukebox.
+      queryParameters:
+        access_token:
+          description: "The access token provided by the authentication application"
+          example: AABBCCDD
+          required: true
+          type: string
+      body:
+        application/json:
+          type: <<resourcePathName|!singularize>>
+          example: |
+            <<exampleItem>>
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
+  collection-item:
+    description: Entity representing a <<resourcePathName|!singularize>>
+    get:
+      description: |
+        Get the <<resourcePathName|!singularize>>
+        with <<resourcePathName|!singularize>>Id =
+        {<<resourcePathName|!singularize>>Id}
+      responses:
+        200:
+          body:
+            application/json:
+              example: |
+                <<exampleItem>>
+        404:
+          body:
+            application/json:
+              example: |
+                {"message": "<<resourcePathName|!singularize>> not found" }
 /songs:
   type:
     collection:
@@ -1023,16 +1023,16 @@ While that's awkward, it’s not a big deal and it will actually help us go furt
 Let's create another resourceType called `readOnlyCollection`. It will be similar to `collection` but without the "POST method". And let's apply this new resourceType to its corresponding collections: `artists/{artistId}/albums` and `/albums/{albumId}/songs`:
 
 ```yaml
-- readOnlyCollection:
-    description: Collection of available <<resourcePathName>> in Jukebox.
-    get:
-      description: Get a list of <<resourcePathName>>.
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                <<exampleCollection>>
+readOnlyCollection:
+  description: Collection of available <<resourcePathName>> in Jukebox.
+  get:
+    description: Get a list of <<resourcePathName>>.
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              <<exampleCollection>>
 ```
 
 ```yaml
@@ -1113,11 +1113,11 @@ Before getting involved with the Traits concept, let's enhance the Searchable fi
       exampleItem: !include jukebox-include-song-new.sample
   get:
     queryParameters:
-        query:
-          description: |
-            JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
-          example: |
-            ["songTitle", "Get L", "like"]
+      query:
+        description: |
+          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
+        example: |
+          [{"songTitle", "Get L", "like"}]
 ```
 
 If you reset your workspace, you will see this enhancement applied to every Searchable resource.
@@ -1140,22 +1140,22 @@ The same way that several resources might utilize a specific resourceType, it's 
       exampleItem: !include jukebox-include-song-new.sample
   get:
     queryParameters:
-        query:
-          description: |
-            JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
-          example: |
-            ["songTitle", "Get L", "like"]
+      query:
+        description: |
+          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
+        example: |
+            [{"songTitle", "Get L", "like"}]
 ```
 
 ```yaml
 traits:
-  - searchable:
-      queryParameters:
-        query:
-          description: |
-            JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] <<description>>
-          example: |
-            <<example>>
+  searchable:
+    queryParameters:
+      query:
+        description: |
+          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] <<description>>
+        example: |
+          <<example>>
 ```
 
 As you can see, this Searchable trait is comprised of a name and an applicable parameter. It is also evident in the example above that traits can be parameterized. Let's check how the trait can be applied to a method:
@@ -1186,32 +1186,32 @@ Considering our table, we need to create 2 additional traits: `Orderable` and `P
 
 ```yaml
 traits:
-  - orderable:
-      queryParameters:
-        orderBy:
-          description: |
-            Order by field: <<fieldsList>>
-          type: string
-          required: false
-        order:
-          description: Order
-          enum: [desc, asc]
-          default: desc
-          required: false
-  - pageable:
-      queryParameters:
-        offset:
-          description: Skip over a number of elements by specifying an offset value for the query
-          type: integer
-          required: false
-          example: 20
-          default: 0
-        limit:
-          description: Limit the number of elements on the response
-          type: integer
-          required: false
-          example: 80
-          default: 10
+  orderable:
+    queryParameters:
+      orderBy:
+        description: |
+          Order by field: <<fieldsList>>
+        type: string
+        required: false
+      order:
+        description: Order
+        enum: [desc, asc]
+        default: desc
+        required: false
+  pageable:
+    queryParameters:
+      offset:
+        description: Skip over a number of elements by specifying an offset value for the query
+        type: integer
+        required: false
+        example: 20
+        default: 0
+      limit:
+        description: Limit the number of elements on the response
+        type: integer
+        required: false
+        example: 80
+        default: 10
 /songs:
   type:
     collection:
@@ -1251,10 +1251,10 @@ git checkout -f step8
 You will see that the schemas section ended as:
 
 ```yaml
-schemas:
-  - song: !include jukebox-include-song.schema
-  - artist: !include jukebox-include-artist.schema
-  - album: !include jukebox-include-album.schema
+types:
+  song: !include jukebox-include-song.schema
+  artist: !include jukebox-include-artist.schema
+  album: !include jukebox-include-album.schema
 ```
 
 and of course, three new files will appear in your file system.
