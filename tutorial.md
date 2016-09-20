@@ -34,8 +34,8 @@ Recalling how your API consumers will use your API, enter the following three re
 
 ```yaml
 /users:
-  /authors:
-  /books:
+/authors:
+/books:
 ```
 
 Notice that these resources all begin with a slash (/). In RAML, this is how you indicate a resource. Any methods and parameters nested under these top level resources belong to and act upon that resource. Now, since each of these resources is a collection of individual objects (specific authors, books, and users), we'll need to define some sub-resources to fill out the collection.
@@ -70,8 +70,8 @@ Nest the methods to allow developers to perform these actions under your resourc
 ```yaml
 /books:
   get:
-  post:
   put:
+  post:
 ```
 
 ## ENTER URI PARAMETERS
@@ -179,7 +179,7 @@ Now, specify attributes for each of the query parameters you defined above. As a
           required: true
 ```
 
-To make a PUT call, your URI looks like http://api.e-bookmobile.com/books/Stiff?access_token=ACCESS TOKEN
+To make a PUT call, your URI looks like http://api.e-bookmobile.com/books/Stiff?access_token=ACCESS_TOKEN
 
 ## ENTER RESPONSES
 
