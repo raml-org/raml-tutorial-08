@@ -4,12 +4,7 @@
 
 ## RAML Specification Version
 
-Currently the tutorial only covers the previous RAML specification version 0.8.
-
-## Roadmap
-
-As RAML 1.0 has been released a couple of weeks ago we plan to update the tutorial appropriately. Currently we execute a feedback round to
-understand what we need to improve in general before we start with the update. We want to make sure that support and help you get from this tutorial matches to people from no to advanced experience with RAML.
+This tutorial covers RAML 1.0.
 
 ## Contribution
 

@@ -1,1203 +1,836 @@
-# RAML 100 Tutorial
+## Getting Started
 
-*Objective:* Learn the basics of RAML by designing a very basic API for BookMobile.
+There are several tools that make writing, previewing, and testing RAML easier.  In this section we will introduce the API Workbench that you can use throughout the tutorial. There are also others. For example, check out [MuleSoft's API Designer](#https://github.com/mulesoft/api-designer).
 
-## Introduction
+If you have an development environment already, please jump ahead to the [RAML Basics](#raml-basics) section.
 
-This tutorial will guide you through conceptualizing the design of your API and writing it in RAML, the RESTful API Modeling Language.
+### API Workbench
 
-## Assumptions
+In November 2015, MuleSoft released the API Workbench as an open-source tool that give developers a rich, full-featured integrated development environment (IDE) for designing, building, testing, documenting and sharing RESTful HTTP APIs. The core of the API Workbench is Github’s Atom, a text editor that is designed to be deeply customizable and extensible to build a unique experience for every developer. The API Workbench, different from the API Designer, is an IDE that can be used locally which comes with a lot advantages such as an easier integration of version control and collaboration tools.
 
-You know the basics of how RESTful APIs operate: how to send requests and responses, and how to specify the components of a RESTful API.
+#### Installing the API Workbench
 
-## ENTER THE ROOT
+To get started with the API Workbench, you'll need to get [Github’s Atom](https://atom.io/docs/v0.194.0/getting-started-installing-atom) on your system first. After you've done the installation, installing the API Workbench should be fairly simple. The easiest way is to use Atom's package manager that is installed by default. Go to `Preferences` in Atom's main menu (on Mac that is called Atom).
 
-Let's say you are the API designer for a BookMobile startup. You've worked out a business plan, a scaling plan, and Ashton Kutcher is an angel investor. You know you want developers to capitalize on what you've built, so that you can capitalize on what THEY build. You know having a RESTful API is one way to make that happen. So, let's get started by writing a spec.
+![](images/raml_024.png)
 
-First, you'll enter some basic information in a text editor. You can save your API's RAML definition as a text file with a recommended extension .raml:
+That opens an additional `Settings` tab with an option to `Install` new plugins. Choose that option and simple type in `api-workbench` to search for the plugin.
+
+![](images/raml_025.png)
+
+Now click on the `Install` button in your search result and wait until the installation process is done. This process is happening in the background and you will not get notified when finished. So just wait until you will find the `api-workbench` plugin under the list of installed packages.
+
+![](images/raml_026.png)
+
+#### Creating your first RAML
+
+After installing the API Workbench you should also have an additional menu entry in the `Packages` menu called `API Workbench`. It contains different features that will support developers with not only creating a RAML project from scratch, but also to obtain popular community APIs from an external Github repository; and more.
+
+To create a project from scratch, simple click on `Create RAML Project` and fill in all necessary information before confirming using the `Create` button.
+
+![](images/raml_027.png)
+
+Depending on the information you put in, and let us assume the information are the same as in the image above, you should get a single **api.raml** file with the following content:
 
 ```yaml
 #%RAML 1.0
----
-title: e-BookMobile API
-baseUri: http://api.e-bookmobile.com/{version}
+title: New API
 version: v1
+baseUri: http://api.samplehost.com
 ```
 
-Everything you enter in at the [root](https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#the-root-of-the-document) (or top) of the spec applies to the rest of your API. This is going to come in very handy later as you discover patterns in how you build your API. The baseURI you choose will be used with every call made, so make sure it's as clean and concise as can be.
+### RAML Basics
 
-## ENTER RESOURCES
+The nice thing about using a tool like the API Designer is that it will automatically prefill the required aspects of your RAML file for you.  These are the:
 
-As a thoughtful API designer, it's important to consider how your API consumers will use your API. It's especially important because in many ways, as the API designer YOU control the consumption. For example, consider the functionality of the BookMobile API. You know you want your users to be able to keep track of what they've read and their favorites. Users should also be able to discover new books and look at other titles written by their favorite authors. To do this, you define various collections as your [resources](https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#resources-and-nested-resources).
+- RAML and version declaration
+- Your API Title
+- The BaseUri for your API
+- The version of your API (ie version 1, 2, 4, etc)
 
-Recalling how your API consumers will use your API, enter the following three resources under your root:
-
-```yaml
-/users:
-  /authors:
-  /books:
-```
-
-Notice that these resources all begin with a slash (/). In RAML, this is how you indicate a resource. Any methods and parameters nested under these top level resources belong to and act upon that resource. Now, since each of these resources is a collection of individual objects (specific authors, books, and users), we'll need to define some sub-resources to fill out the collection.
-
-Nested resources are useful when you want to call out a particular subset of your resource in order to narrow it. For example:
-
-```yaml
-/authors:
-  /{authorname}:
-```
-
-This lets the API consumer interact with the key resource and its nested resources. For example a GET request to http://api.e-bookmobile.com/authors/Mary_Roach returns details about science writer and humorist Mary Roach. Now, let's think about what we want developers and API consumers to DO.
-
-## ENTER METHODS
-
-Here's where it starts to get interesting, as you decide what you want the developer to be able to do with the resources you've made available. Let's quickly review the 4 most common HTTP verbs:
-
-*GET* - Retrieve the information defined in the request URI.
-
-*PUT* - Replace the addressed collection. At the object-level, create or update it.
-
-*POST* - Create a new entry in the collection. This method is generally not used at the object-level.
-
-*DELETE* - Delete the information defined in the request URI.
-
-You can add as many methods as you like to each resource of your BookMobile API, at any level. However, each HTTP method can only be used once per resource. Do not overload the GET (you know who you are).
-
-In this example, you want developers to be able to work at the collection level. For example, your API consumers can retrieve a book from the collection (GET), add a book (POST), or update the entire library (PUT). You do not want them to be able to delete information at the highest level. Let's focus on building out the /books resource.
-
-Nest the methods to allow developers to perform these actions under your resources. Note that you must use lower-case for methods in your RAML API definition:
-
-```yaml
-/books:
-  get:
-  post:
-  put:
-```
-
-## ENTER URI PARAMETERS
-
-The resources that we defined are collections of smaller, relevant objects. You, as the thoughtful API designer, have realized that developers will most likely want to act upon these more granular objects. Remember the example of nested resources above? /authors is made up of individual authors, referenced by {authorName}, for example. This is a URI parameter, denoted by surrounding curly brackets in RAML:
-
-```yaml
-/books:
-  /{bookTitle}:
-```
-
-So, to make a request to this nested resource, the URI for Mary Roach's book, Stiff would look like http://api.e-bookmobile.com/v1/books/Stiff
-
-Time to edit your spec to reflect the inherent granular characteristics of your resources:
-
-```yaml
-/books:
-  get:
-  put:
-  post:
-  /{bookTitle}:
-    get:
-    put:
-    delete:
-    /author:
-      get:
-    /publisher:
-      get:
-```
-
-## ENTER QUERY PARAMETERS
-
-Great job so far! Now, let's say you want your API to allow even more powerful operations. You already have collections-based resource types that are further defined by object-based URI parameters. But you also want developers to be able perform actions like filtering a collection. Query parameters are a great way to accomplish this.
-
-Start by adding some query parameters under the GET method for books. These can be specific characteristics, like the year a book was published:
-
-```yaml
-/books:
-  get:
-    queryParameters:
-      author:
-      publicationYear:
-      rating:
-      isbn:
-  put:
-  post:
-```
-
-Query parameters may also be something that the server requires to process the API consumer's request, like an access token. Often, you need security authorization to alter a collection or record.
-
-Nest the access-token query parameter under the PUT method for a specific title:
-
-```yaml
-/books:
-  /{bookTitle}
-    get:
-      queryParameters:
-        author:
-        publicationYear:
-        rating:
-        isbn:
-    put:
-      queryParameters:
-        access_token:
-```
-
-An API's resources and methods often have a number of associated query parameters. Each query parameter may have any number of optional attributes to further define it. The Quick reference guide contains a full listing.
-
-Now, specify attributes for each of the query parameters you defined above. As always, be as complete in your documentation as possible:
-
-```yaml
-/books:
-  /{bookTitle}
-    get:
-      queryParameters:
-        author:
-          displayName: Author
-          type: string
-          description: An author's full name
-          example: Mary Roach
-          required: false
-        publicationYear:
-          displayName: Pub Year
-          type: number
-          description: The year released for the first time in the US
-          example: 1984
-          required: false
-        rating:
-          displayName: Rating
-          type: number
-          description: Average rating (1-5) submitted by users
-          example: 3.14
-          required: false
-        isbn:
-          displayName: ISBN
-          type: string
-          minLength: 10
-          example: 0321736079?
-    put:
-      queryParameters:
-        access_token:
-          displayName: Access Token
-          type: string
-          description: Token giving you permission to make call
-          required: true
-```
-
-To make a PUT call, your URI looks like http://api.e-bookmobile.com/books/Stiff?access_token=ACCESS TOKEN
-
-## ENTER RESPONSES
-
-Responses MUST be a map of one or more HTTP status codes, and each response may include descriptions, examples, or schemas. Schemas are more fully explained in the Level 200 tutorial.
-
-```yaml
-/books:
-  /{bookTitle}:
-    get:
-      description: Retrieve a specific book title
-        responses:
-          200:
-            body:
-              application/json:
-                example: |
-                  {
-                    "data": {
-                      "id": "SbBGk",
-                      "title": "Stiff: The Curious Lives of Human Cadavers",
-                      "description": null,
-                      "datetime": 1341533193,
-                      "genre": "science",
-                      "author": "Mary Roach",
-                      "link": "http://e-bookmobile.com/books/Stiff",
-                    },
-                    "success": true,
-                    "status": 200
-                  }
-    put:
-```
-
-Congratulations! You've just written your first API definition in RAML.
-
-# RAML 200 Tutorial
-
-*Objective:* Once you’re familiar with the [basics of RAML](#raml-100-tutorial), it's time to dig into the more complex features of the language itself and take full advantage of what RAML can offer
-
-## Introduction
-
-This tutorial will guide you through a complete use case for a jukebox API. You’ll learn how to optimize and reuse your code by applying concepts such as resourceTypes and traits, and RAML utilities such as !includes. The tutorial will also demonstrate how RAML uses schemas, and show how to use them to validate an HTTP body.
-
-## Assumptions
-
-You know the [basics of RAML](#raml-100-tutorial): how to write a RAML file with resources, parameters, methods, and responses.
-
-## Hands on!
-
-This tutorial will explain and show snippets of RAML definitions. However, the best learning is to be fully hands-on and play with the code directly. Now, you can easily setup a workspace, mess with the code, and reset it at any step of this tutorial.
-
-## SETTING UP THE WORKSPACE
-
-If you decided to be "hands-on", please clone the GitHub repository
-
-```
-git clone https://github.com/raml-org/raml-tutorial.git
-```
-
-*Spoiler alert:* After cloning, the repository will be in its final state. You can browse the code as is, but it will be like reading the last chapter of a book.
-
-Before each step, we recommend you "sync" the code with the step you are about to read, like this:
-
-```
-git checkout -f [stepX]
-```
-
-*Note:* after cloning the repository, you will need to access to its folder on your local computer and navigate to the `examples` directory. Don’t worry! We’ll remind you each time.
-
-## USE CASE
-
-Build a music Jukebox. While the physical device will be responsible for displaying the information and capturing the user input, it will be relying on your API to retrieve the information requested. The Jukebox needs to be able to:
-
-* Show the full list of artists.
-* Show the full list of albums.
-* Show the list of artists by nationality.
-* Show the list of albums by genre.
-* Search for a song by title.
-* Show a particular artist's albums collection.
-* Show a particular album's songs list.
-* Play a song (by specifying the song id).
-* Enter new Artists, Albums and Songs (only authenticated users).
-
-*Consideration:* This is a jukebox, not a command line. People in pubs might be unable to type lots of characters, so a user friendly UI (paging, image-based, etc) would be very appreciated.
-
-## BASE RAML FILE
-
-Reset your workspace:
-
-```
-git checkout -f step0
-```
-
-If you have read the [RAML 100 Tutorial](#raml-100-tutorial), you should be able to understand our base RAML API definition without major difficulties. Its basic structure could be described as:
-
-```yaml
-/songs
-  get
-  post
-  /{songId}
-    get
-    /file-content
-      get
-      post
-/artists
-  get
-  post
-    /{artistId}
-      get
-      /albums
-        get
-/albums
-  get
-  post
-    /{albumId}
-      get
-      /songs
-        get
-```
-
-If you look into jukebox-api.raml you will find all the resources defined, their GET methods described, and POST methods nearly empty.
-
-As you can see in the following example (extracted from jukebox-api.raml), the resource "/songs" doesn't have a well defined POST: body parameters are missing.
-
-```yaml
-/songs:
-  description: Collection of available songs in Jukebox
-  get:
-    description: Get a list of songs based on the song title.
-    queryParameters:
-      songTitle:
-        description: "The title of the song to search (it is case insensitive and doesn't need to match the whole title)"
-        required: true
-        minLength: 3
-        type: string
-        example: "Get L"
-    responses:
-      200:
-        body:
-          application/json:
-            example: |
-              "songs": [
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440000",
-                    "songTitle": "Get Lucky"
-                  },
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440111",
-                    "songTitle": "Loose yourself to dance"
-                  },
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440222",
-                    "songTitle": "Gio sorgio by Moroder"
-                  }
-                ]
-  /{songId}:
-    description: Song entity
-    get:
-      description: Get the song with `songId = {songId}`
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                {
-                  "songId": "550e8400-e29b-41d4-a716-446655440000",
-                  "songTitle": "Get Lucky",
-                  "duration": "6:07",
-                  "artist": {
-                    "artistId": "110e8300-e32b-41d4-a716-664400445500"
-                    "artistName": "Daft Punk",
-                    "imageURL": "http://travelhymns.com/wp-content/uploads/2013/06/random-access-memories1.jpg"
-                  },
-                  "album": {
-                    "albumId": "183100e3-0e2b-4404-a716-66104d440550",
-                    "albumName": "Random Access Memories",
-                    "imageURL": "http://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg"
-                  }
-                }
-        404:
-          body:
-            application/json:
-              example: |
-                {"message": "Song not found"}
-    /file-content:
-      description: The file to be reproduced by the client
-      get:
-        description: Get the file content
-        responses:
-          200:
-      post:
-  post:
-```
-
-## BODY PARAMETERS
-
-### Form Parameters
-
-Reset your workspace:
-
-```
-git checkout -f step1a
-```
-
-There are several ways of defining the body parameters for an HTTP method. You can check the jukebox-api.raml file looking for the `/songs/{songId}/file-content` definition and you will find one of these.
-
-```
-/file-content:
-  description: The file to be reproduced by the client
-  get:
-    description: Get the file content
-    responses:
-      200:
-        body:
-          binary/octet-stream:
-            example:
-              !include heybulldog.mp3
-  post:
-    description: |
-       Enters the file content for an existing song entity.
-
-       Use the "binary/octet-stream" content type to specify the content from any consumer (excepting web-browsers).
-       Use the "multipart-form/data" content type to upload a file which content will become the file-content
-    body:
-      binary/octet-stream:
-      multipart/form-data:
-        properties:
-          file:
-            description: The file to be uploaded
-            required: true
-            type: file
-```
-
-`/file-content` resource represents the file to reproduce when a Jukebox user select a particular song, although, there are tons of ways of modeling this scenario on a RESTful API. We've chosen this one for this tutorial purposes. It doesn't mean it's a best practice at all.
-
-As you can see in the POST definition, its body contains two possible content-types.
-The `binary/octet-stream` simply expects `file-content` to be sent as a parameter. It's a valid and popular technique for APIs that supporting files. Unfortunately, it makes the API impossible to call from a web browser (at least with the purpose of uploading a file).
-
-For the `multipart/form-data` (and also the `application/x-www-form-urlencoded`), it is possible to define a map of "properties", defining this map the same way that the rest of the RAML ones (in this case, the "file" field is required and of type "file").
-
-### Schemas
-
-Reset your workspace:
-
-```
-git checkout -f step1b
-```
-
-A body also can be of `application/json` content-type (among others, like `application/xml`) and for these, the expected body parameter will be a string with a valid JSON (or XML). So, this is another way of defining a method's body parameter.
-One of the RAML supported features is the possibility of defining schemas and apply these to the body parameters as well, as it is shown on the code of jukebox-api.raml
-
-```yaml
-body:
-  application/json:
-    type: |
-      {
-        "type": "object",
-        "$schema": "http://json-schema.org/draft-03/schema",
-        "id": "http://jsonschema.net",
-        "required": true,
-        "properties": {
-          "songTitle": {
-            "type": "string",
-            "required": true
-          },
-          "albumId": {
-            "type": "string",
-            "required": true,
-            "minLength": 36,
-            "maxLength": 36
-          }
-        }
-      }
-    example: |
-      {
-        "songId": "550e8400-e29b-41d4-a716-446655440000",
-        "songTitle": "Get Lucky",
-        "albumId": "183100e3-0e2b-4404-a716-66104d440550"
-      }
-```
-
-What the example is basically saying is: "The expected parameter is a valid json, and for valid, it needs to fulfill the specified schema definition". In this case, the represented object has:
-
-* "songTitle" property of type "string", and it's required
-* "albumId" property of type "string", and not only is it required, but it also needs to be 36 characters long.
-
-It's not the intention of this tutorial explain how JSON and XML schemas work, but you can learn more at http://json-schema.org/ and http://www.w3.org/XML/Schema.html.
-
-### EXTRACT SCHEMAS
-
-Reset your workspace:
-
-```
-git checkout -f step2
-```
-
-One interesting RAML feature is the ability to extract the schemas and reference them by name. There are three major advantages of doing this, and the first two might look a bit obvious:
-
-* Improve RAML readability
-* Allow reusing the schemas in several sections.
-
-The third advantage will become clear in following sections, when trying to use "resource types" and parameterize these.
-
-```yaml
-types:
- song: |
-  {
-    "type": "object",
-    "$schema": "http://json-schema.org/draft-03/schema",
-    "id": "http://jsonschema.net",
-    "required": true,
-    "properties": {
-      "songTitle": {
-        "type": "string",
-        "required": true
-      },
-      "albumId": {
-        "type": "string",
-        "required": true,
-        "minLength": 36,
-        "maxLength": 36
-      }
-    }
-  }
-```
-
-```yaml
-body:
-  application/json:
-    type: song
-    example: |
-      {
-        "songId": "550e8400-e29b-41d4-a716-446655440000",
-        "songTitle": "Get Lucky",
-        "albumId": "183100e3-0e2b-4404-a716-66104d440550"
-      }
-```
-
-As you can see in the code example, the schema described in previous sections is now being defined and referenced by the name "song". The name choice is not random, and the correct convention will allow you to parameterize resource types and reuse a lot of code (this will be explained in following sections).
-
-## RESOURCE TYPES
-
-### The "collection/collection-item" pattern
-
-We are definitively not saying that all RESTful APIs are the same. I don’t want to even suggest it. But there are absolutely some common behaviors. For example, if we are trying to represent resources that could be inferred from a business model, it will likely be analogous with the CRUD model. Given a resource, you can create a new one, retrieve one or all of them and update or delete an existing one.
-
-In that sense, we can easily identify an existing resource (to be fetched, deleted or updated), a new one (to be added to a collection) and the collection itself (to be retrieved).
+To start the file off, we'll simply add `#%RAML` followed by the version of RAML that we are using, in this case 1.0:
 
 ```yaml
 #%RAML 1.0
-title:
+```
 
-/resources:
+This tells the parser that this should be handled as a RAML file, and also what version of RAML so that the parser knows how to handle the different types of functionality (for example, many features available in RAML 1.0 are not available in RAML 0.8 - this tells the parser to take advantage of these features).
+
+Once we have declared the file as a RAML file (as shown above) the next thing we need to do is give our API a title, such as `My API`:
+
+```yaml
+#%RAML 1.0
+title: My API
+```
+
+So far this has been pretty easy, right?  The next thing to add is our `baseUri`, or what the root domain and path for the API is.  This will be used by the majority of the tooling to tell your users where to make the calls, and even help them test their calls.  To add the `baseUri`, simply add it in like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+```
+
+Last but not least, we should declare what version of the API "My API" this is.  This will be used to help ensure developers know which version of the API they're using, as well as for all of your documentation.  This will also help you segment versions of your API for when you inevitably have to create a new version.
+
+We do this by adding in the `version` property like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+```
+
+And there you go!  Just like that you have started off your RAML file.  The next part is adding in resources, methods, and properties - which the next few sections will walk you through.  The nice thing is, each aspect of RAML is as easy, and as clear-cut as the four items we declared above.
+
+### Creating Resources
+
+Creating resources in RAML is as easy as writing down it's path.  For example, if we wanted to create an API with a `/users` resource, all we would need to type is `/users:` like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+```
+
+Just like that we now have a `/users` resource:
+
+![](images/raml_001.png)
+
+To add a description to our `/users` resource, we simply follow YAML conventions and add the `description` property:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  description: this is my users resource!  isn't this easy?!
+```
+
+And once again, just like that, the description is added to our resource:
+
+![](images/raml_002.png)
+
+#### URI Properties
+
+To create more complex resources, or resources that utilize names or IDs, you can take advantage of URI properties, or placeholders within the resource.  To do this, simply tell the spec that your ID is a URI Property by placing curly brackets around it, like so:
+
+```yaml
+/users/{id}:
+```
+
+Just like that you can setup IDs or dynamic resource paths:
+
+![](images/raml_003.png)
+
+#### Nested Resources
+
+But another great feature of RAML is something called resource nesting, or creating child resources.  To add a nested resource, simply follow YAML convention by tabbing in once under the parent resource, and then declare your child resource as you did your parent resource - but with a relative path from the parent's path:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  description: this is my users resource!  isn't this easy?!
+
+  /{id}:
+    description: this is a nested dynamic resource using a URI property
+```
+
+As you can see, the `/{id}` resource is now a child of the parent resource.  This lets you define your API in a way that is efficiently organized, letting you quickly find all sub-resources under their parent.
+
+However, it's important to note that the child resources inherit the parent path ONLY - and do not inherit any of parent's properties such as it's resourceType or methods, unless specifically specified in the child resource (as you did in the parent).
+
+For example, if we look at this RAML snippet:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
   get:
-  post:
-  /{resourceId}:
-    get:
-    put:
-    delete:
+
+  /{id}:
 ```
 
-So, we found two different type of resources. The item (represented by an id), and the collection (containing all the items). It would be nice to be able to define these types, and declare the resources of those types. Luckily, there is a way to do this in RAML.
+You'll notice that the resource `/users` has a `GET` method, however the child resource `/{id}` does not.  
 
-### Resource Types in RAML
+![](images/raml_004.png)
 
-Reset your workspace:
+Again, this is because the child resource only inherits the path and not the properties of its parent.
 
-```
-git checkout -f step3a
-```
+### Creating Methods
 
-Similar to the last example code, where we only showed the resources and supported methods, this step consists in just creating the "resourceTypes" with their supported methods.
+Just as creating resources was as simple as declaring the path, adding methods is as simple as declaring the method:
 
 ```yaml
-resourceTypes:
-  collection:
-    get:
-    post:
-  collection-item:
-    get:
-```
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
 
-As you may notice, the PUT and DELETE methods are not defined for the collection-item resourceType. This is basically because the use case does not request any resource to be deleted or updated.
-So, what this version of the jukebox-api.raml is saying is "There are two resource types: collection, which has the GET and POST methods defined, and collection-item which has the GET method defined". Standing alone, it doesn't really seem to be very useful. However, it's important to understand as the first step of defining good resourceTypes and reusing patterns in the code.
-
-### Defining and parameterizing resourceTypes
-
-The following explanation and code snippets will guide you step by step on how to get the next version of the jukebox-api.raml.
-
-Reset your workspace:
-
-```
-git checkout -f step3b
-```
-
-What do we know about our collections thus far? Let's check what "/songs", "/artists", and "/albums" have in common:
-
-* Description
- * GET method with:
-  * description
-  * response for HTTP status 200 (which body's content type is "application/json")
- * POST method with:
-  * description
-  * "access_token" queryParameter
-  * bodyParameter with "application/json" contentType and validated by a Schema
-  * response with HTTP status 200 (which body's content type is "application/json")
-
-So, let's extract this from one of the resources (I will take "/songs" for this example, but we will end up parameterizing the resourceType, so it doesn't matter which one you choose to start).
-
-```yaml
-resourceTypes:
-  collection:
-    description: Collection of available songs in Jukebox
-    get:
-      description: Get a list of songs based on the song title.
-      responses:
-        200:
-          body:
-            application/json:
-    post:
-      description: |
-        Add a new song to Jukebox.
-      queryParameters:
-        access_token:
-          description: "The access token provided by the authentication application"
-          example: AABBCCDD
-          required: true
-          type: string
-      body:
-        application/json:
-          type: song
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                { "message": "The song has been properly entered" }
-```
-
-With the `collection` resourceType as it is right now, there is not much we can do. Applying it to the `/songs` resource is a possibility, but we don't want those descriptions, schemas, or even the POST response to be applied to all the resources since the collection is specific to `/songs`.
-Parameters are useful here. Suppose that you can write a "placeholder" on the resourceType to be filled with a value specified on the resource. For instance:
-
-```yaml
-description: Collection of available <<resource>> in Jukebox
-```
-
-with `<<resource>>` receiving "songs", "artists", or "albums" depending on the resource.
-
-While this is possible (and very useful for most scenarios), for this particular case it's not necessary for the resource to even pass the parameter thanks to *Reserved Parameters*.
-
-A Reserved Parameter simply is a parameter with a value automatically specified by its context. For the resourceTypes case, there are two Reserved Parameters: resourcePath and resourcePathName. For the /songs example, the values will be "/songs" and "songs" respectively.
-
-Now, if you are looking at the last code snippet, you will realize that we need the values to be "songs" in some cases and "song" in others.
-
-Here is where Parameters Transformers become handy.
-
-There are two Parameters Transformers we could use for this example: `!singularize` and `!pluralize` (note: The only locale supported by the current version of RAML is "United States English").
-
-So combining this, let's update our latest code snippet:
-
-```yaml
-resourceTypes:
-  collection:
-    description: Collection of available <<resourcePathName>> in Jukebox.
-    get:
-      description: Get a list of <<resourcePathName>>.
-      responses:
-        200:
-          body:
-            application/json:
-    post:
-      description: |
-        Add a new <<resourcePathName|!singularize>> to Jukebox.
-      queryParameters:
-        access_token:
-          description: "The access token provided by the authentication application"
-          example: AABBCCDD
-          required: true
-          type: string
-      body:
-        application/json:
-          type: <<resourcePathName|!singularize>>
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
-/songs:
-  type: collection
+/users:
   get:
+```
+
+Which in turn creates:
+
+![](images/raml_005.png)
+
+RAML supports `GET`, `PUT`, `PATCH`, `POST`, `DELETE`, `HEAD`, and `OPTIONS` although you'll want to be careful which ones you use as not all are official methods, and not all are supported by all servers.
+
+It's also important to understand the difference between each of these methods as they all have VERY specific purposes with careful and well established standards surrounding them.
+
+Like with resources, you can add a description to your methods.  This is a perfect place to share what the method is and what it does, and can be used in generating documentation for your API.  
+
+To add a description, simply use the `description` property:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  get:
+    description: this is my get method
+```
+
+#### Querystring Parameters
+
+Another common functionality with APIs is Querystring Parameters, or manipulating the response using the URI querystring.
+
+RAML lets you document the different querystrings under the method they are being implemented under (hopefully this is the `GET` method!!!) by using the `queryParameters` property, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  get:
+    description: this is my get method
     queryParameters:
-      songTitle:
-        description: "The title of the song to search (it is case insensitive and doesn't need to match the whole title)"
-        required: true
-        minLength: 3
+```
+
+For each `queryParameter` you will simply need to declare the name of the parameter, keeping it consistent with how it is used within the URL.  So if our URL was `http://api.mydomain.com/users?status=active` we would call the query parameter "status" like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  get:
+    description: this is my get method
+    queryParameters:
+      status:
+```
+
+And as simple as that, we now have the `status` query parameter showing up in our API documentation:
+
+![](images/raml_006.png)
+
+Of course, there is much more you can do with the query parameter, such as providing it's display name, a description, an example, the default value, whether or not it is required, and even it's type:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  get:
+    description: this is my get method
+    queryParameters:
+      status:
+        displayName: Status
+        description: Status of the users to retrieve (active, inactive, all)
+        default: all
+        required: false
         type: string
-        example: "Get L"
-    responses:
-      200:
-        body:
-          application/json:
-            example: |
-              "songs": [
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440000",
-                    "songTitle": "Get Lucky"
-                  },
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440111",
-                    "songTitle": "Loose yourself to dance"
-                  },
-                  {
-                    "songId": "550e8400-e29b-41d4-a716-446655440222",
-                    "songTitle": "Gio sorgio by Moroder"
-                  }
-              ]
+```
+
+By providing this additional information, you are empowering your users as this information can be passed through to them in your documentation, as well as taken advantage of by other tools that parse your API's RAML spec.
+
+#### Body Data
+
+RAML also lets you share examples of what the user should be sending when making `PUT`, `PATCH`, or `POST` calls by using the `body` property, and then the corresponding content-type:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
   post:
     body:
       application/json:
-          example: |
-            {
-              "songId": "550e8400-e29b-41d4-a716-446655440000",
-              "songTitle": "Get Lucky",
-              "albumId": "183100e3-0e2b-4404-a716-66104d440550"
-            }
 ```
 
-Note that even the Schema name is specified with this parameter (singular in this case). Do you remember when we extracted the schemas at step 2? We mentioned that the schema name was not random - this is why.
-Another important aspect to stress is that defining and applying a resourceType to a resource doesn't forbid you from overwriting any of the map's elements. In this example, we still see that GET method is present in both, resource and resourceType (the same for the responses, POST, etc). Not only is this allowed, but also is the way of redefining something that changes from one resource to other. If you think this looks like OOP inheritance, you’re right!
+Unfortunately, this really doesn't change the way our documentation works as we still have not provided WHAT the body should look like.
 
-Now, let's work with the "collection-item" resourceType.
+To do this we have two options, we can share a schema (more often used with XML) or provide an example of the data being shared.
 
-Reset your workspace:
-
-```
-git checkout -f step3c
-```
-
-There is nothing new with this code. More resourceType definitions, parameterization, and usage:
+Of course, if we'd like we can share both by using the corresponding properties:
 
 ```yaml
-collection-item:
-  description: Entity representing a <<resourcePathName|!singularize>>
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    body:
+      application/json:
+        type: |
+          {
+            "$schema": "http://json-schema.org/draft-04/schema#",
+            "id": "http://jsonschema.net",
+            "type": "object",
+            "properties": {
+              "name": {
+                "id": "http://jsonschema.net/name",
+                "type": "string"
+              },
+              "city": {
+                "id": "http://jsonschema.net/city",
+                "type": "string"
+              },
+              "state": {
+                "id": "http://jsonschema.net/state",
+                "type": "string"
+              }
+            },
+            "required": [
+              "name",
+              "city",
+              "state"
+            ]
+          }
+        example: |
+          {
+            "name": "Mike Stowe",
+            "city": "San Francisco",
+            "state": "CA"
+          }
+```
+
+By providing both this lets us share with our users what the request should look like, as well as the specific information about what the request needs to include and how it should be formatted, something that again can be provided to them via your documentation and also used to generate auto-validating SDKs:
+
+![](images/raml_007.png)
+
+Of course, your API may support numerous content-types, which works fairly well with RAML, as all you have to do to add an additional content type is, well, add it (I'm removing schemas in this case to keep it short, but of course RAML supports multiple content-types having schemas):
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    body:
+      application/json:
+        example: |
+          {
+            "name": "Mike Stowe",
+            "city": "San Francisco",
+            "state": "CA"
+          }
+      text/xml:
+        example: |
+          <user>
+            <name>Mike Stowe</name>
+            <city>San Francisco</city>
+            <state>CA</state>
+          </user>
+```
+
+As you can see, we now have multiple content types to choose from shown in our documentation:
+
+![](images/raml_008.png)
+
+What's important to remember is that schemas describe the request content, where-as examples are "real-life demos" of what that formatted content would look like when being sent to your server via the content-type body.
+
+### Handling Responses
+
+RAML lets you easily describe all aspects of your API resource method's responses for multiple status codes including defining headers, content-types, schemas, and example responses.
+
+To declare responses in RAML, simply use the `responses` property:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+```
+
+#### Status Codes
+
+As RAML is intended to describe HTTP REST APIs, responses rely on the standard HTTP status codes.
+
+The most popular status codes are:
+
+Status Code | Description | Generally Returned For
+----------- | ----------- | ------------
+**2xx** | **Successful** |
+200 | The request was handled successfully | GET, PUT, PATCH
+201 | A new object has been created | POST
+204 | The request was successful, but there's no content to return | DELETE
+**3xx** | **Redirection** |
+301 | Resource or item moved permanently | ALL
+304 | Nothing was modified by the request | PUT, PATCH
+**4xx** | **Client Error** |
+400 | The request could not be understood by the server | ALL
+401 | Not authorized to access or perform action | ALL
+404 | The resource or item could not be found | GET
+405 | The method attempted (GET, PUT, POST, etc) is not allowed | ALL
+415 | The media type request (JSON, XML, etc) is not supported | ALL
+**5xx** | **Server Error** |
+500 | The server experienced an unexpected error and could not complete the request | ALL
+
+The above table only represents a fraction and there are more.
+
+To setup responses for each status, use the status code as the key for the response, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        # 200 - Object Created
+      400:
+        # 400 - Bad Request
+      500:
+        # 500 - Server Error
+```
+
+Which as you can see adds them to our API documentation for that method:
+
+![](images/raml_009.png)
+
+#### Headers
+
+Headers are used to transmit important information about the response, such as the location of newly created object.
+
+Adding headers is as simple as using the `headers` property within the status code's response block.  Then add the name of the header (such as `location`) as the property.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          location:
+            #location data will go here
+      401:
+        # Not Authorized
+```
+
+Once you have defined the header by the property name you can add the following properties to each header property as necessary:
+
+Property | Description
+-------- | -----------
+displayName | How to display the header in documenation
+type | Data type of the header property such as string, integer, etc
+example | An example of the type of data the header may return
+
+For example:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          location:
+            displayName: Location
+            type: string
+            example: http://http://api.mydomain.com/users/109
+      401:
+        # Not Authorized
+```
+
+As you can see, this is then translated into our documentation for us:
+
+![](images/raml_010.png)
+
+#### Content Types
+
+RAML also lets you define not just one, but multiple content types for each HTTP Status Response code.
+
+This means that you can return back data as JSON, XML, plain text, form-encoded, or other formats.
+
+To define a content type, first state that you are returning back body data by using the `body` property, and then use the associated content-type for that content type, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          # header information
+        body:
+          application/json:
+```
+
+To list multiple content types, you can simply add additional content types within the `body` section of the status code response data, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          # header information
+        body:
+          application/json:
+          text/xml:
+```
+
+The next step to showing off these content types is adding in example response data so that we can see what they look like.
+
+#### Examples
+
+A unique feature of RAML compared to some other specifications is the ability to create your own examples rather than forcing you to build a schema for the response.
+
+Adding an example is as simple as using the `example` property.  However, because most examples are multi-lined, and because RAML is written in the YAML format, you'll need to add a pipe "|" so that it can be properly parsed.  
+
+Another option, of course, is to include your example using `!include` which we will talk about in a later chapter.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          # header information
+        body:
+          application/json:
+            example: |
+              {
+                "response" : "data"
+              }
+          text/xml:
+            example: |
+              <response>
+                data
+              </response>
+```
+
+Now if we look at the API Console we can see multiple content types (one for JSON and one for XML) as well as the example response data for each:
+
+![](images/raml_011.png)
+
+You can also define multiple examples using `examples` property instead of `example`. For each example, you need to provide a unique key.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  post:
+    responses:
+      201:
+        headers:
+          # header information
+        body:
+          application/json:
+            examples:
+              example1: |
+                {
+                  "response" : "data"
+                }
+              example2: |
+                {
+                  "response" : "another data"
+                }              
+```
+
+## Setting up Templates
+
+Now that you have an idea of what your API resources will look like, RAML let's you setup includes and templates to allow for both code reuse and the implementation of design patterns.  This not only ensures that your API is consistent throughout, but also lets you organize your API to keep it easily readable by those working with the RAML spec.
+
+It's important to remember that the benefits of code reuse and design patterns are both immediate and long-term.  While you may feel that you can build a consistent API, the patterns ensure consistency.  This especially becomes important as your API grows and newer developers start working with it - often times trying to implement new resources or methods without having a strong and full understanding of your entire API.
+
+### Includes
+
+The easiest of the templates to setup, the `!include` function lets you pull in external files, whether they be another RAML file, example response files, or schemas.
+
+Using the !include file is as simple as:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/resource:
   get:
-    description: |
-      Get the <<resourcePathName|!singularize>>
-      with <<resourcePathName|!singularize>>Id =
-      {<<resourcePathName|!singularize>>Id}
     responses:
       200:
         body:
           application/json:
-      404:
-        body:
-          application/json:
-            example: |
-              {"message": "<<resourcePathName|!singularize>> not found" }
+            example: !include examples/resource_get.json
+            type: !include types/resource_get.json
 ```
+
+### ResourceTypes
+
+ResourceTypes on the other hand let you create resource templates, or specific templates based on the type of resource, often split into item or collection.
+
+For example, if you are performing an operation on a collection (usually the resource WITHOUT an ID) you can setup a resourceType so that all your collection based resources operate exactly the same (just with different data).
+
+You can also do the same with your item resources (/resource/{ID}), again creating a specific template that ensures that all item resources look and feel the same way.
+
+Another huge advantage of resourceTypes is that it lets you define all your possible responses in a single place, rather than having to repeat your general status code responses (200, 201, 301, 304, 401, 404, 405, 415, 500) for each of the individual resources.
 
 ```yaml
-/songs:
-  ...
-  /{songId}:
-    type: collection-item
-    get:
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                {
-                  "songId": "550e8400-e29b-41d4-a716-446655440000",
-                  "songTitle": "Get Lucky",
-                  "duration": "6:07",
-                  "artist": {
-                    "artistId": "110e8300-e32b-41d4-a716-664400445500"
-                    "artistName": "Daft Punk",
-                    "imageURL": "http://travelhymns.com/wp-content/uploads/2013/06/random-access-memories1.jpg"
-                  },
-                  "album": {
-                    "albumId": "183100e3-0e2b-4404-a716-66104d440550",
-                    "albumName": "Random Access Memories",
-                    "imageURL": "http://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg"
-                  }
-                }
-```
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
 
-But as you can see, we are still repeating lot of code. Specifically:
-
-```yaml
-get:
-  responses:
-    200:
-      body:
-        application/json:
-          example: |
-```
-
-Basically, every piece of code needed to define the examples. And this is basically because we have only learned how to use Reserved Parameters. However, we have also mentioned that the idea of parameterizing is to specify "placeholder" to be filled with a specified value.
-
-That would solve our "examples problem".
-
-### PARAMETERS
-
-Reset your workspace:
-
-```
-git checkout -f step4
-```
-
-At the moment of defining the parameter in the resourceType (with the placeholder), there is no difference between a parameter and a reserved parameter. The actual difference only appears when passing the parameter at the resource level. For instance, a parameter named as `exampleItem` will need to be passed this way:
-
-```yaml
-/{songId}:
-    type:
-      collection-item:
-        exampleItem: THIS IS THE EXAMPLE
-```
-
-In "human language", it's basically saying that `/{songId}` resource is of `collection-item` type (the same as on the previous step). But now, it's also indicating that the value for the `collection-item` parameter `exampleItem` is "THIS IS THE EXAMPLE". Since this is a string, all the YAML rules for strings are valid.
-
-Having said that, let's take a look at some relevant code pieces.
-
-```yaml
 resourceTypes:
   collection:
-    description: Collection of available <<resourcePathName>> in Jukebox.
     get:
-      description: Get a list of <<resourcePathName>>.
-      responses:
-        200:
-          body:
-            application/json:
-              example: |
-                <<exampleCollection>>
+      description: this is a get method
     post:
-      description: |
-        Add a new <<resourcePathName|!singularize>> to Jukebox.
-      queryParameters:
-        access_token:
-          description: "The access token provided by the authentication application"
-          example: AABBCCDD
-          required: true
-          type: string
-      body:
-        application/json:
-          type: <<resourcePathName|!singularize>>
-          example: |
-            <<exampleItem>>
-      responses:
-        200:
+      description: this is a post method
+    delete:
+      description: this is a delete method
+      responses:	 		
+        202:
+          headers:
+        304:
           body:
             application/json:
               example: |
-                { "message": "The <<resourcePathName|!singularize>> has been properly entered" }
-  collection-item:
-    description: Entity representing a <<resourcePathName|!singularize>>
+                { "Response" : "Nothing Modified" }
+        401:
+          body:
+            application/json:
+              example: |
+                { "Response" : "Not Authorized" }
+        405:
+          body:
+            application/json:
+              example: |
+                { "Response" : "Method Not Allowed" }
+        415:
+          body:
+            application/json:
+              example: |
+                { "Response" : "Content-type Not Recognized" }
+        500:
+          body:
+            application/json:
+              example: |
+                { "Response" : "Internal Server Error" }
+/users:
+  type: collection
+```
+
+You'll noticed that the `/users` doesn't actually have any properties assigned to it other than `type: collection`, but because it is of a known resourceType, all of the information will be automatically pulled into it for us:
+
+![](images/raml_013.png)
+
+Including method properties:
+
+![](images/raml_014.png)
+
+#### Declaring Optional Methods
+
+Of course, chances are you do not want ALL the information to be pulled in all of the time, in which case you can make methods OPTIONAL by adding a `?` to the end of the method name, like so:
+
+	#%RAML 1.0
+	title: My API
+	baseUri: http://api.mydomain.com
+	version: 1
+
+	resourceTypes:
+	 - collection:
+	 	get?:
+	 		description: this is a get method
+
+	 	put?:
+	 		description: this is a put method
+
+	 	post?:
+	 		description: this is a post method
+
+	 	delete?:
+	 		description: this is a delete method
+
+	/users:
+		type: collection
+
+Now the `/resource` does not have ANY properties being pulled in because we have declared all the methods to be optional, and to only be pulled in if explicitly called by the resource.
+
+![](images/raml_015.png)
+
+But the second we call in one of the properties, we now have it's description and any underlying properties that we would delcared:
+
+	/users:
+		type: collection
+		get:
+
+As you can see here:
+
+![](images/raml_016.png)
+
+####Placeholders within ResourceTypes
+Just as you probably do not want all methods in every resource, chances are you probably want different descriptions, examples, properties, and other data within your resources.
+
+Keep in mind, that you can always override the resourceType by typing in the data again, or by not having the data wtihin your resource to begin with.
+
+However, for properties that are consistent across your resources, it may be most efficient to take advantage of placeholders, or variables within the template that will be replaced by the placeholder value assigned by that resource once pulled in.
+
+Placeholders within RAML are denoted by double less than and greater than signs, or `<<PLACEHOLDER>>`.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+resourceTypes:
+  collection:
     get:
-      description: |
-        Get the <<resourcePathName|!singularize>>
-        with <<resourcePathName|!singularize>>Id =
-        {<<resourcePathName|!singularize>>Id}
+      description: this is a get method
       responses:
         200:
           body:
             application/json:
               example: |
                 <<exampleItem>>
-        404:
-          body:
-            application/json:
-              example: |
-                {"message": "<<resourcePathName|!singularize>> not found" }
-/songs:
+```
+
+As you can see from the code above, first we declare our placeholders in the resourceType itself, and then we specify the values in the calling resource, under that specific type:
+
+```yaml
+/users:
   type:
     collection:
-      exampleCollection: |
-        [
-          {
-            "songId": "550e8400-e29b-41d4-a716-446655440000",
-            "songTitle": "Get Lucky"
-          },
-          {
-            "songId": "550e8400-e29b-41d4-a716-446655440111",
-            "songTitle": "Loose yourself to dance"
-          },
-          {
-            "songId": "550e8400-e29b-41d4-a716-446655440222",
-            "songTitle": "Gio sorgio by Morodera"
-          }
-        ]
       exampleItem: |
         {
-          "songId": "550e8400-e29b-41d4-a716-446655440000",
-          "songTitle": "Get Lucky",
-          "albumId": "183100e3-0e2b-4404-a716-66104d440550"
+          "name": "Mike Stowe",
+          "city": "San Francisco",
+          "state": "CA"
         }
-  get:
-    queryParameters:
-      songTitle:
-        description: "The title of the song to search (it is case insensitive and doesn't need to match the whole title)"
-        required: true
-        minLength: 3
-        type: string
-        example: "Get L"
-  /{songId}:
-    type:
-      collection-item:
-        exampleItem: |
-          {
-            "songId": "550e8400-e29b-41d4-a716-446655440000",
-            "songTitle": "Get Lucky",
-            "duration": "6:07",
-            "artist": {
-              "artistId": "110e8300-e32b-41d4-a716-664400445500"
-              "artistName": "Daft Punk",
-              "imageURL": "http://travelhymns.com/wp-content/uploads/2013/06/random-access-memories1.jpg"
-            },
-            "album": {
-              "albumId": "183100e3-0e2b-4404-a716-66104d440550",
-              "albumName": "Random Access Memories",
-              "imageURL": "http://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg"
-            }
-          }
 ```
 
-As you can see, the same concept shown in the previous example was applied to both the `/songs`, and `/songs/{songId}` resources.
-The code that was repeated at the end of the step 3 is now completely within the resourceType at the point that the POST definition directly disappeared from the resources. That's correct. Now, every `collection-item` typed resources will have a valid (generic) POST definition without you ever writing it.
+These placeholders are automatically replaced with the correct data in our documentation:
 
-### INCLUDES
+![](images/raml_017.png)
 
-Reset your workspace:
+This allows us to ensure consistency not only in how our resources operate, but also in our documentation.  Making it easy for our developers to go from resource to resource, knowing that the code and the documentation will be consistent.
 
-```
-git checkout -f step5
-```
+### Traits
 
-We have improved our RAML definition a lot during the last step with resourceTypes. We were able to extract common components of the resources and encapsulate these with a structure that grants inheritance-like capabilities.
+Traits operate in a fairly similar fashion to resourceTypes except that they operate more as functions with the placeholder values being sent as properties in an array, and are designed specifically for use within the method (such as GET, PUT, PATCH, POST, or DELETE).
 
-Nevertheless, the RAML file still contains lot of information that could be considered as "not API-describing". Sort of "economy-class" members, if you will. Equally important, but not necessarily part of the main RAML file.
+Traits are typically used for operations such as pagination, searching, or filtering the method data.
 
-Through `!includes`, RAML allows us to build file-distributed API definitions, which is not only useful to encourage code reuse but also improves readability.
-
-Here, we will extract the examples used for `/songs` resource to different files and include these in the main RAML definition.
-
-```json
-{
-  "songId": "550e8400-e29b-41d4-a716-446655440000",
-  "songTitle": "Get Lucky",
-  "albumId": "183100e3-0e2b-4404-a716-66104d440550"
-}
-```
-
-```json
-{
-  "songId": "550e8400-e29b-41d4-a716-446655440000",
-  "songTitle": "Get Lucky",
-  "duration": "6:07",
-  "artist": {
-    "artistId": "110e8300-e32b-41d4-a716-664400445500",
-    "artistName": "Daft Punk",
-    "imageURL": "http://travelhymns.com/wp-content/uploads/2013/06/random-access-memories1.jpg"
-  },
-  "album": {
-    "albumId": "183100e3-0e2b-4404-a716-66104d440550",
-    "albumName": "Random Access Memories",
-    "imageURL": "http://upload.wikimedia.org/wikipedia/en/a/a7/Random_Access_Memories.jpg"
-  }
-}
-```
-
-```json
-[
-  {
-    "songId": "550e8400-e29b-41d4-a716-446655440000",
-    "songTitle": "Get Lucky"
-  },
-  {
-    "songId": "550e8400-e29b-41d4-a716-446655440111",
-    "songTitle": "Loose yourself to dance"
-  },
-  {
-    "songId": "550e8400-e29b-41d4-a716-446655440222",
-    "songTitle": "Gio sorgio by Morodera"
-  }
-]
-```
-
-As you can see, the extracted files contain raw strings. It's important to stress that every included file is treated as a string by RAML, which presents some well known restrictions regarding how to distribute the definition among files. More than limitations, these restrictions attempt to define a common way to work with !includes and avoid free-form defined APIs. Remember that one of RAML’s major goals is to unify criteria and encourage best-practices.
-
-The following code snippet shows how to include or "call" the extracted files from the main definition.
+To delcare a trait, first we need to declare it at the top of our spec under the `traits` property:
 
 ```yaml
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
-  /{songId}:
-    type:
-      collection-item:
-        exampleItem: !include jukebox-include-song-retrieve.sample
-```
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
 
-As shown in the last snippet, RAML features encourage you to reduce the quantity of code you write, while making it more reusable and maintainable.
-
-### REFACTOR
-
-We have introduced several features and made great progress with our API definition, but aren't we missing something? We have just focused on the "/songs" resource (and its descending branch). If you check your RAML file right now, you will discover that all other resources are still not taking advantage of the work we have done.
-Let's solve that right now! Repeat the same procedures for all the resources:
-
-* identify and apply the collection and collection-item pattern
-* pass the correct parameters
-* extract the belonging examples into separated files
-
-When you finish with that your workspace should look like the following one.
-
-Reset your workspace:
-
-```
-git checkout -f step6a
-```
-
-As you might notice, the quantity of lines in the RAML file has been significantly reduced and there are more files than before. Most important: It's visibly simpler!
-But not everything went so smoothly. If you look carefully, there is a problem with sub-collections (`/artists/{artistId}/albums` and `/albums/{albumId}/songs`). Since these aren't the main collections of each resource, we decided not to allow new elements to be created on them. In other words, these collections were READ-ONLY. When applying the `collection` resourceType, we also automatically added the "POST" method. As an additional consequence, the RAML definition now requires the `exampleItem` parameter to be passed for those resources too (which we have temporarily resolved by passing `{}`).
-
-```yaml
-/artists:
-  /{artistId}:
-    /albums:
-      type:
-        collection:
-          exampleCollection: !include jukebox-include-artist-albums.sample
-          exampleItem: {}
-      description: Collection of albulms belonging to the artist
-      get:
-        description: Get a specific artist's albums list
-```
-
-While that's awkward, it’s not a big deal and it will actually help us go further in order to solve it.
-
-Let's create another resourceType called `readOnlyCollection`. It will be similar to `collection` but without the "POST method". And let's apply this new resourceType to its corresponding collections: `artists/{artistId}/albums` and `/albums/{albumId}/songs`:
-
-```yaml
-readOnlyCollection:
-  description: Collection of available <<resourcePathName>> in Jukebox.
-  get:
-    description: Get a list of <<resourcePathName>>.
-    responses:
-      200:
-        body:
-          application/json:
-            example: |
-              <<exampleCollection>>
-```
-
-```yaml
-/artists:
-  /{artistId}:
-    /albums:
-      type:
-        readOnlyCollection:
-          exampleCollection: !include jukebox-include-artist-albums.sample
-      description: Collection of albulms belonging to the artist
-      get:
-        description: Get a specific artist's albums list
-/albums:
-  /{albumId}:
-    /songs:
-      type:
-        readOnlyCollection:
-          exampleCollection: !include jukebox-include-album-songs.sample
-      get:
-        description: Get the list of songs for the album with `albumId = {albumId}`
-```
-
-The result should be similar to the step6b workspace.
-
-Reset your workspace:
-
-```
-git checkout -f step6b
-```
-
-If you are following the code in detail, you will have already noticed something: `collection` and `readOnlyCollection` resourceTypes are repeating some code. Actually, `readOnlyCollection` code is completely included in `collection` code. That’s correct! And there is a way of making this even more efficient. It's all about "types composing" and it will be totally covered in a later tutorial.
-
-## TRAITS
-
-We are almost done! We are busy fulfilling all the requirements for the described use case. As usual however, we’ve discovered something while building, and this tutorial cannot be the exception.
-Will I be able to sort my collections? Shouldn't my API give users the chance of paging these? Is the strategy we chose for searching a collection good enough? What if we need to enhance and make more complex queries in the future?
-Let's tackle these issues. But first, we need to understand them correctly
-
-### Understanding our resources
-
-Let's build a simple table to discover and agree about each collection capabilities:
-
-| Collection/Capabilities |	Searchable |	Sorteable	| Pageable |
-|:------------------------|:----------:|:----------:|:--------:|
-| /songs | YES | YES | YES
-| /artists | YES | YES | YES
-| /albums | YES | YES | YES
-| /artists/{aId}/albums | NO | YES | YES
-| /albums/{aId}/songs | NO | YES | NO
-
-If we consider who will be consuming the API, this table would probably look very different (small collections can be filtered, ordered and paged on the client side). For the purposes of this tutorial, we are keeping it anyway.
-
-### Fixing the Searchable collections
-
-Before getting involved with the Traits concept, let's enhance the Searchable fixed parameters by applying a generic "query" queryParameter.
-
-```yaml
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
-  get:
-    queryParameters:
-      songTitle:
-        description: "The title of the song to search (it is case insensitive and doesn't need to match the whole title)"
-        required: true
-        minLength: 3
-        type: string
-        example: "Get L"
-```
-
-```yaml
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
-  get:
-    queryParameters:
-      query:
-        description: |
-          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
-        example: |
-          [{"songTitle", "Get L", "like"}]
-```
-
-If you reset your workspace, you will see this enhancement applied to every Searchable resource.
-
-Reset your workspace:
-
-```
-git checkout -f step7a
-```
-
-### Searchable Trait
-
-The same way that several resources might utilize a specific resourceType, it's possible to define and reuse similar behavior with traits. This is one of these concepts that are better explained by code:
-
-```yaml
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
-  get:
-    queryParameters:
-      query:
-        description: |
-          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] with valid searchable fields: songTitle
-        example: |
-            [{"songTitle", "Get L", "like"}]
-```
-
-```yaml
 traits:
-  searchable:
+  pageable:
     queryParameters:
-      query:
-        description: |
-          JSON array [{"field1","value1","operator1"},{"field2","value2","operator2"},...,{"fieldN","valueN","operatorN"}] <<description>>
-        example: |
-          <<example>>
+      offset:
+        description: Skip over a number of elements by specifying an offset value for the query
+        type: integer
+          required: false
+          example: 20
+          default: 0
+      limit:
+        description: Limit the number of elements on the response
+        type: integer
+        required: false
+        example: 80
+        default: 10
 ```
 
-As you can see, this Searchable trait is comprised of a name and an applicable parameter. It is also evident in the example above that traits can be parameterized. Let's check how the trait can be applied to a method:
+And then we will pull it into our method using the `is` property:
 
 ```yaml
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
+/users:
   get:
-    is: [searchable: {description: "with valid searchable fields: songTitle", example: "[\"songTitle\", \"Get L\", \"like\"]"}]
+    is: [pageable]
 ```
 
-So, what the definition is really saying is that there is a trait called "Searchable" and that the "/songs" resource utilizes it. Furthermore, the trait is applied to the GET method itself, since the "Searchable" contract should only be applied to that particular method. In other cases, you could apply a trait to the whole resource, and even more: traits can also be applied to resourceTypes. This topic should and will be covered in a separate tutorial (types composition). Feel free to try this out anyway, and always remember that you can:
+Once the trait is successfully pulled in, we can see it within the API designer or in our documentation:
 
-Reset your workspace:
+![](images/raml_018.png)
 
-```
-git checkout -f step7b
-```
-
-Note that in the step7b workspace, we have already applied the Searchable trait to `/songs`, `/artists` and `/albums` resources.
-
-### Other traits
-
-Considering our table, we need to create 2 additional traits: `Orderable` and `Pageable`. The creation is trivial, and when applied we confirm something that you might have noticed during the previous step: traits are a collection (that's why they are applied within an array).
+As mentioned, you can also take advantage of placeholders with traits by sending these values back in a key, value based array:
 
 ```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
 traits:
-  orderable:
-    queryParameters:
-      orderBy:
-        description: |
-          Order by field: <<fieldsList>>
-        type: string
-        required: false
-      order:
-        description: Order
-        enum: [desc, asc]
-        default: desc
-        required: false
+  filterable:
   pageable:
     queryParameters:
       offset:
@@ -1205,72 +838,109 @@ traits:
         type: integer
         required: false
         example: 20
-        default: 0
+        default: <<offsetDefault>>
       limit:
         description: Limit the number of elements on the response
         type: integer
         required: false
         example: 80
-        default: 10
-/songs:
-  type:
-    collection:
-      exampleCollection: !include jukebox-include-songs.sample
-      exampleItem: !include jukebox-include-song-new.sample
+        default: <<limitDefault>>
+/users:
   get:
     is: [
-          searchable: {description: "with valid searchable fields: songTitle", example: "[\"songTitle\", \"Get L\", \"like\"]"},
-          orderable: {fieldsList: "songTitle"},
-          pageable
-        ]
+      filterable,
+      pageable: {offsetDefault: 0, limitDefault: 20}
+    ]
 ```
 
-In this case, you can see that the "Pageable" trait receives no parameter.
+The biggest advantage of traits is that they ensure consistency in the way your methods are acted upon.  Remember in Chapter 1 where we talked about how easy it is for these inconsitencies to crop up, making APIs difficult to use (as you have to search one resource one way, but another a completely different way - or worse, the same resource different ways) - by using traits you are creating a sure way NOT to run into this issue and have such inconsistences across your API.
 
-Go ahead! Apply the proper traits to the proper resources as we defined in the table.
-Once done, the code should look like the one on step7c
+The other nice thing about traits is that you can apply mulitple traits to your methods, letting you pull in and utilize multiple types of functions as much or as little as needed.
 
-Reset your workspace:
+### Libraries
 
-```
-git checkout -f step7c
-```
+As you start adding traits, resourceTypes, schemas, and examples, it's easy for your specifcation to become bloated.  Of course you can call all of these in with `!include` but you still are not able to take advantage of code reuse at scale.
 
-## FINAL TUNING
+One of the new features of RAML 1.0 is libraries, or the ability to call in parts of your specification in a namespaced scope - meaning that you can pick and choose which of these items to apply to your spec.
 
-We could say that our RAML file has been properly refactored and is now much more readable, reusable, and maintainable. Maybe a last step would be to double-check which parts of the RAML definition could now be extracted to other files (the same way we have done with the "examples").
+This is particularly helpful if you have multiple APIs that share common themes (`/users` for example).
 
-Starting at the root, we find the schemas, and it seems a no-brainer that each JSON (in this case) could be extracted and included as we have learned.
-
-Reset your workspace:
-
-```
-git checkout -f step8
-```
-
-You will see that the schemas section ended as:
+To pull in a namespaced library, you'll first want to create a library file.  We declare that a RAML specification is only to be used as a library by adding "Library" to the top of the file, like so:
 
 ```yaml
-types:
-  song: !include jukebox-include-song.schema
-  artist: !include jukebox-include-artist.schema
-  album: !include jukebox-include-album.schema
+#%RAML 1.0 Library
 ```
 
-and of course, three new files will appear in your file system.
+By adding this line, we are telling the RAML spec to treat this file as a class, and not as an independent RAML specification.
 
-While this doesn't seem to be a revelation (it isn't), let's keep checking our RAML file to discover what else can be extracted. Honestly, resourceTypes and traits are really tempting. But if you try to follow the same strategy, you will surely fail. Remember in previous sections that we explained that the `!include` function would just take the content of the file and embed its contents as a string? That’s precisely what we wanted to do with the examples and the schemas. However, if we look at the resourceTypes and traits again, we will notice that they are not just strings, but maps (just like the rest of the RAML file). So basically, NO! You CANNOT extract these with the same approach you used to extract examples and schemas.
-
-However, you could extract all the resourceTypes to a file (and do the same with the traits).
+Let's move our resourceTypes and Traits into this file:
 
 ```yaml
-resourceTypes: !include jukebox-includes-resourceTypes.inc
+#%RAML 1.0 Library
+
+resourceTypes:
+  collection:
+    get:
+      # Get method goes here
+    post:
+      # Post method goes here
+    delete:
+      # Delete method goes here
+
+traits:
+  filterable:
+    # Filterable trait goes here
+  pageable:
+    # Pageable trait goes here
 ```
 
-While this is not a restriction, it’s good to note it doesn't mean it's a recommended practice. In some cases, you will need to compromise. For example: if we had 2000 lines of resourceTypes definition, we probably would like to extract this to a separate file. But if the resourceTypes are not really complicating the readability, it could also be nice to be able to see how they are defined without going to an external file. As usual, it's a matter of good judgment.
+Now to call in this library, we will again pull it in using the `uses` property:
 
-## CONCLUSION
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
 
-In this tutorial, we learned how to optimize our RAML file from a code reuse and maintainability point of view, Traits, resourceTypes, and includes were introduced and a full use case was developed and refactored.
+uses:
+  users: libraries/users.raml
 
-Finally, just like in every discipline, we need to use good judgment. Always remember that over engineering is never a good idea. Ever.
+/users:
+    get:
+```
+
+However, at this point nothing is being applied to the resource or the method.  If we try to apply the "collection" resourceType as we did before, the result will be an error:
+
+![](images/raml_019.png)
+
+The reason for this is that the resourceType "collection" doesn't exist!  Instead, it is under the `users` namespace that we declared above, and as such to utilize that resourceType we have to call it with respect to its parent's name, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+uses:
+	users: libraries/users.raml
+
+/users:
+  type: users.collection
+  get:
+```
+
+As you can see, now the resourceType `users.collection` has been applied to our resource:
+
+![](images/raml_020.png)
+
+By having your resourceTypes, traits, schemas, and examples namespaced, you are able to prevent collisions and only use the components of a library that you choose - keeping your specification clean, and your code reusable.
+
+## Going Further
+
+Hopefully this tutorial has helped you master the RAML specification, but there are many more resources and much more you can do with the RESTful API Modeling Language.  There are also more advanced features for code reusability and extensibility (such as Data Types, Annotations, and Overlays) as well as numerous mechanisms to describe your API's security schemes.
+
+Be sure to visit the official RAML website for more on these features, as well as additional resources, and a list of over 100 open source projects designed to make designing, building, testing,documenting, and sharing your API easier.
+
+### Have Questions?
+
+Check out the @RAMLAPI twitter handle, or post your questions in the RAML.org forums.
