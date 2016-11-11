@@ -695,27 +695,25 @@ Including method properties:
 
 Of course, chances are you do not want ALL the information to be pulled in all of the time, in which case you can make methods OPTIONAL by adding a `?` to the end of the method name, like so:
 
-	#%RAML 1.0
-	title: My API
-	baseUri: http://api.mydomain.com
-	version: 1
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
 
-	resourceTypes:
-	 - collection:
-	 	get?:
-	 		description: this is a get method
-
-	 	put?:
-	 		description: this is a put method
-
-	 	post?:
-	 		description: this is a post method
-
-	 	delete?:
-	 		description: this is a delete method
-
-	/users:
-		type: collection
+resourceTypes:
+  collection:
+    get?:
+      description: this is a get method
+    put?:
+      description: this is a put method
+    post?:
+      description: this is a post method
+    delete?:
+      description: this is a delete method
+/users:
+  type: collection
+```
 
 Now the `/resource` does not have ANY properties being pulled in because we have declared all the methods to be optional, and to only be pulled in if explicitly called by the resource.
 
@@ -723,9 +721,11 @@ Now the `/resource` does not have ANY properties being pulled in because we have
 
 But the second we call in one of the properties, we now have it's description and any underlying properties that we would delcared:
 
-	/users:
-		type: collection
-		get:
+```yaml
+/users:
+  type: collection
+  get:
+```
 
 As you can see here:
 
