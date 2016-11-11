@@ -950,7 +950,283 @@ By having your resourceTypes, traits, schemas, and examples namespaced, you are 
 
 ## Security
 
-(coming soon)
+Securing your APIs is as critical as letting your consumers know what mechanism you use to protect your API. RAML 1.0 allows you to define the most common security schemes and additionally lets you declare your own custom scheme. You then apply those schemes either on the complete API which tells consumers that you use specific mechanism across your API, or on specific resources or HTTP methods.
+
+To be able to apply one or more security schemes, we need to first declare it at the top of our spec under the `securitySchemes` property:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  private:
+    # security scheme definition goes here
+```
+
+And then we are able to apply it, for example, on a specific resource using the `securedBy` property:
+
+```yaml
+/users:
+  securedBy: [ private ]
+```
+
+The type of your security scheme is indicated by the `type` property. RAML 1.0 supports the following built-in types:
+
+* OAuth 1.0
+* OAuth 2.0
+* Basic Authentication
+* Digest Authentication
+* Pass Through
+* x-{other}
+
+The following sections explain each in more detail.
+
+### Basic Auth
+
+The "Basic Authentication" authorization is based on the model that the client must authenticate itself with a user-ID and a password. The client sends both information as uncrypted base64 encoded text and therefore should only be used with HTTPS, otherwise the password can be easily captured and reused.
+
+The following examples shows how to define a Basic Authentication security scheme in RAML:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  basic:
+    description: |
+      This API supports Basic Authentication.
+    type: Basic Authentication
+```
+
+You can protect any resource or HTTP method with Basic Authentication by configuring `securedBy` and referencing back to your security scheme.
+
+```yaml
+/users:
+  securedBy: [ basic ]
+```
+
+A server that receives an unauthenticated HTTP request for a protected resource (eg `/users`) can force Basic Authentication by rejecting the request with a 401 status code with additional information that describes the authentication mechanism, in our case `Basic`, and the security scope using `realm`. The following is an example if you send an anonymous request to our `/users` resource:
+
+```
+HTTP/1.1 401 Access Denied
+WWW-Authenticate: Basic realm="Members only"
+Content-Length: 0
+```
+
+Most web browser will display a login dialog when it receives this response, allowing the user to enter the user-ID and password. The browser sends this information again with an Authorization header:
+
+```
+GET /users HTTP/1.1
+Host: api.mydomain.com
+Authorization: Basic YWRtaW46YWRtaW4=
+```
+
+The Authorization header specifies the authentication mechanism followed by a simply base64 encoded version of <user-ID>:<password>. In our example, we encoded "admin:admin" which everyone can easily decode again.
+
+### Digest Auth
+
+Digest Authentication, compared to Basic Authentication, does not require the client to send the user-ID and password across the wire in an unencrypted form. Instead, the server sends the client a generated one-time to use string (also called a nonce value). The client combines that value with the user-ID, realm, and the password; and runs those fields through an MD5 hashing method to produce a hash key.
+
+The client sends the produced hash key to the server along with the user-ID and realm to authenticate itself.
+
+The following examples shows how to define a Digest Authentication security scheme in RAML:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  digest:
+    description: |
+      This API supports DigestSecurityScheme Authentication.
+    type: Digest Authentication
+```
+
+You can protect any resource or HTTP method with Digest Authentication by configuring `securedBy` and referencing back to your security scheme.
+
+```yaml
+/users:
+  securedBy: [ digest ]
+```
+
+Now, if a server receives an unauthenticated HTTP request to access `/users`, it responds with a 401 status code and additional information inside the WWW-Authenticate header like the authentication mechanism used (eg Digest), the security scope using `realm`, and the generated one-time string for the client.
+
+```
+HTTP/1.1 401 Access Denied
+WWW-Authenticate: Digest realm="Members only",
+  nonce="LHOKe1l2BAA=5c373ae0d933a0bb6321125a56a2fcdb6fd7c93b"
+Content-Length: 0
+```
+
+A web browser that receives the response from a server will prompt for a user-ID and password. Once both are supplied, the client resends the same request but adds an `Authorization` header that includes all necessary information to authenticate the user.
+
+```
+GET /users HTTP/1.1
+Host: api.mydomain.com
+Authorization: Digest username="admin",
+  realm="Members only",
+  nonce="LHOKe1l2BAA=5c373ae0d933a0bb6321125a56a2fcdb6fd7c93b",
+  uri="/users",
+  response="876f419ed86d25c56d78d3851eae5e86"
+```
+
+The Authorization header specifies the authentication mechanism followed by the user-ID (username), the realm, the nonce value provided by the server, the URI, and the MD5 hash generated by the client.
+
+Digest Authentication might have its advantages compared to Basic Authentication, since it does not use the password directly which makes it harder for Hackers to restore it, but it got other security trade-offs. For example, a man-in-the-middle attacker could tell clients to use Basic Authentication instead since Digest does not provide a mechanism for clients to verify the server's identity.
+
+### OAuth Authentication
+
+Open Authentication (OAuth) is an open standard authentication protocol that allows you to log in to websites using your Google, Facebook, or own OAuth provider without sharing your password. Compared to Basic or Digest authentication, OAuth is token-based and does not have the needs to ask for a username and a password. An OAuth token is harder to guess, tied to a particular application or device, and can be easily revoked without effecting other applications or devices. Additionally, there is no need to store or share your password.
+
+There are two versions of OAuth, each with its own strength and weaknesses.  
+
+#### OAuth 1
+
+The OAuth 1.0 authentication follows the standard described in RFC5849 and is believed to be the more secure version, but less flexible and complex. Its based on a signature system where both client and server having a shared secret that they use to calculate the signature.
+
+The following example shows how to set properties for OAuth 1.0 in RAML:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  oauth_1_0:
+    description: |
+      OAuth 1.0 continues to be supported for all API requests, but OAuth 2.0 is now preferred.
+    type: OAuth 1.0
+    settings:
+      requestTokenUri: https://api.mysampleapi.com/1/oauth/request_token
+      authorizationUri: https://api.mysampleapi.com/1/oauth/authorize
+      tokenCredentialsUri: https://api.mysampleapi.com/1/oauth/access_token
+      signatures: [ 'HMAC-SHA1', 'PLAINTEXT' ]
+```
+
+You can protect any resource or HTTP method with OAuth 1.0 Authentication by configuring `securedBy` and referencing back to your security scheme.
+
+```yaml
+/users:
+  securedBy: [ oauth_1_0 ]
+```
+
+#### OAuth 2
+
+The OAuth 2.0 authentication follows the standard described in RFC6749, and removes the complicated signature system and instead relies on SSL. That is why it is believed to be less secure. Furthermore, since OAuth 2.0 requires HTTPS you can only secure website that uses it but you might want to be able to provide OAuth authentication for all your websites, also the ones that uses HTTP.
+
+The advantage using OAuth 2.0 is that it is easier to implement for third parties and more flexible. For example, it lets users choose the actions a client application can access.
+
+The following example shows how to set properties for OAuth 2.0 in RAML:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  oauth_2_0:
+    description: |
+      My API supports OAuth 2.0 for authenticating all API requests.
+    type: OAuth 2.0
+    describedBy:
+      headers:
+        Authorization:
+          description: |
+             Used to send a valid OAuth 2 access token. Do not use
+             with the "access_token" query string parameter.
+          type: string
+      queryParameters:
+        access_token:
+          description: |
+             Used to send a valid OAuth 2 access token. Do not use with
+             the "Authorization" header.
+          type: string
+      responses:
+        401:
+          description: |
+              Bad or expired token. This can happen if the user or my API
+              revoked or expired an access token. To fix, re-authenticate
+              the user.
+        403:
+          description: |
+              Bad OAuth request (wrong consumer key, bad nonce, expired
+              timestamp...). Unfortunately, re-authenticating the user won't help here.
+    settings:
+      authorizationUri: https://www.myapi.com/1/oauth2/authorize
+      accessTokenUri: https://api.myapi.com/1/oauth2/token
+      authorizationGrants: [ authorization_code, implicit, 'urn:ietf:params:oauth:grant-type:saml2-bearer' ]
+```
+
+You can protect any resource or HTTP method with OAuth 2.0 Authentication by configuring `securedBy` and referencing back to your security scheme.
+
+```yaml
+/users:
+  securedBy: [ oauth_2_0 ]
+```
+
+### Pass Through
+
+Pass Through authentication is a mechanism where the server delegates an authentication request to a domain controller.
+
+The following examples shows how to define a Pass Through security scheme in RAML:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  passthrough:
+    description: |
+      This API supports Pass Through Authentication.
+    type: Pass Through
+    describedBy:
+      queryParameters:
+        query:
+          type: string
+      headers:
+        api_key:
+          type: string
+```
+
+### Custom Authentication Schemes
+
+Sometimes, you have very specific security requirements that cannot be mapped directly to one of the existing security types. In this case, RAML 1.0 gives you the ability to define a custom security type that you can match to your needs. The following examples shows how to define a custom authentication security scheme using `x-{name}` as the type:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+securitySchemes:
+  custom_scheme:
+    description: |
+      A custom security scheme for authenticating requests.
+    type: x-token
+    describedBy:
+      headers:
+        SpecialToken:
+          description: |
+            Used to send a custom token.
+          type: string
+      responses:
+        401:
+          description: |
+            Bad token.
+        403:
+```
+
+Custom authentication schemes do also not have any requirements for defining specific settings.
 
 ## Extending RAML with Annotations
 
