@@ -599,6 +599,10 @@ version: 1
                 }              
 ```
 
+## RAML Data Types
+
+(coming soon)
+
 ## Setting up Templates
 
 Now that you have an idea of what your API resources will look like, RAML let's you setup includes and templates to allow for both code reuse and the implementation of design patterns.  This not only ensures that your API is consistent throughout, but also lets you organize your API to keep it easily readable by those working with the RAML spec.
@@ -731,7 +735,8 @@ As you can see here:
 
 ![](images/raml_016.png)
 
-####Placeholders within ResourceTypes
+#### Placeholders within ResourceTypes
+
 Just as you probably do not want all methods in every resource, chances are you probably want different descriptions, examples, properties, and other data within your resources.
 
 Keep in mind, that you can always override the resourceType by typing in the data again, or by not having the data wtihin your resource to begin with.
@@ -935,9 +940,25 @@ As you can see, now the resourceType `users.collection` has been applied to our 
 
 By having your resourceTypes, traits, schemas, and examples namespaced, you are able to prevent collisions and only use the components of a library that you choose - keeping your specification clean, and your code reusable.
 
+### Fragments
+
+(coming soon)
+
+### Overlays and Extensions
+
+(coming soon)
+
+## Security
+
+(coming soon)
+
+## Extending RAML with Annotations
+
+(coming soon)
+
 ## Going Further
 
-Hopefully this tutorial has helped you master the RAML specification, but there are many more resources and much more you can do with the RESTful API Modeling Language.  There are also more advanced features for code reusability and extensibility (such as Data Types, Annotations, and Overlays) as well as numerous mechanisms to describe your API's security schemes.
+Hopefully this tutorial has helped you master the RAML specification, but there are many more resources and much more you can do with the RESTful API Modeling Language.
 
 Be sure to visit the official RAML website for more on these features, as well as additional resources, and a list of over 100 open source projects designed to make designing, building, testing,documenting, and sharing your API easier.
 
