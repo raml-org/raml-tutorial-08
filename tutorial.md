@@ -942,7 +942,62 @@ By having your resourceTypes, traits, schemas, and examples namespaced, you are 
 
 ### Typed Fragments
 
-(coming soon)
+So far, we defined all types, resource types or traits in the same RAML document or in a separated library. Alternately, you can also use special types of includes known as "typed fragments" to break each of these constructs into multiple include files, specifying a different file for each type, resource type or trait.
+
+Typed fragments, compared to normal YAML files, must be valid against restrictions for the type of the fragment being defined.
+
+Every typed fragment starts with a RAML fragment identifier of the following format:
+
+```yaml
+#%RAML 1.0 <fragment-type>
+```
+
+For example, the first line of a typed fragment file for a trait would be:
+
+```yaml
+#%RAML 1.0 Trait
+```
+
+Now, the content of this typed fragment file must be a valid trait declaration.
+
+```yaml
+#%RAML 1.0 Trait
+
+queryParameters:
+  offset:
+    description: Skip over a number of elements by specifying an offset value for the query
+    type: integer
+    required: false
+    example: 20
+    default: <<offsetDefault>>
+  limit:
+    description: Limit the number of elements on the response
+    type: integer
+    required: false
+    example: 80
+    default: <<limitDefault>>
+```
+
+Each typed fragment file can be easily pulled in using the `!include` function.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+traits:
+  filterable:
+  pageable: !include pageable-trait.raml
+/users:
+  get:
+    is: [
+      filterable,
+      pageable: {offsetDefault: 0, limitDefault: 20}
+    ]
+```
+
+You can use typed fragments to define user documentation items, named examples, annotations, libraries, overlays, and extensions. See a complete list of available fragment types in the respective specification section [here](https://github.com/raml-org/raml-spec/blob/master/versions/raml-10/raml-10.md#typed-fragments).
 
 ### Overlays and Extensions
 
