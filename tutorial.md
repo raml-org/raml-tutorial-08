@@ -1230,7 +1230,64 @@ Custom authentication schemes do also not have any requirements for defining spe
 
 ## Extending RAML with Annotations
 
-(coming soon)
+Annotations are designed to allow for any information to be placed within your RAML specification.
+
+To use annotations, we need to first declare an annotation type within our spec. You declare an annotation type using the same semantics compared to a RAML data type.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+annotationTypes:
+  partnerClearanceLevel:
+    type: string
+    enum: [low, med, high]
+```
+
+You can even reference an annotation type to an existing RAML data type creating different means for the same type declaration.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+types:
+  clearanceLevel:
+    type: string
+    enum: [low, med, high]
+
+annotationTypes:
+  partnerClearanceLevel: clearanceLevel
+  customerClearanceLevel: clearanceLevel
+```
+
+Once they have been declared, we can now place them in our resources and methods like any other property, denoting they are an annotation by surrounding the key in parenthesis, like so:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: https://api.mydomain.com
+version: 1
+
+types:
+  clearanceLevel:
+    type: string
+    enum: [low, med, high]
+
+annotationTypes:
+  partnerClearanceLevel: clearanceLevel
+  customerClearanceLevel: clearanceLevel
+
+/users:
+  get:
+    (partnerClearanceLevel): low
+    (customerClearanceLevel): high
+```
+
+Annotations are a powerful way to add any information or further meanings to your RAML specification that may be important for your consumer, other vendors or third service solutions might require, but in a way that doesn't impact the rest of your specification.
 
 ## Going Further
 
