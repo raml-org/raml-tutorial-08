@@ -984,7 +984,7 @@ As you can see, by using an overlay we are easily able to update or provide docu
 
 But again, when using the Overlay keyword we're not able to change any functionality, such as overwriting resources, methods, or the baseUri.
 
-```
+```yaml
 #%RAML 1.0 Overlay
 usage: Developer Environment
 extends: api.raml
@@ -1000,7 +1000,7 @@ Trying to do so instead returns back an error:
 
 Instead, to change functionality we will want to use the Extension keyword, explicitly telling the RAML parser that we want to overwrite functionality as well. This will let us override resources, methods, and even the baseUri - letting us cater to the requirements of each of our different environments such as dev, QA, and production - as well as different aspects of functionality our API may make available for partners or internal developers.
 
-```
+```yaml
 #%RAML 1.0 Extension
 usage: Developer Environment
 extends: api.raml
