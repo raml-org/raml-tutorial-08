@@ -940,13 +940,79 @@ As you can see, now the resourceType `users.collection` has been applied to our 
 
 By having your resourceTypes, traits, schemas, and examples namespaced, you are able to prevent collisions and only use the components of a library that you choose - keeping your specification clean, and your code reusable.
 
-### Fragments
+### Typed Fragments
 
 (coming soon)
 
 ### Overlays and Extensions
 
-(coming soon)
+Overlays and Extensions allow another type of code reuse, by letting you create one specification and then "overlay" it with another to meet specific conditions or requirements without having to duplicate or modify your original spec.
+
+For example, if your company has development, QA, and production environments - the configurations for each environment (such as the baseUri) might be different. Before, in RAML 0.8, to accomplish this you would need to duplicate your specification for each environment - increasing the odds of bugs or differences between the different "environment specific" specifications. But with RAML 1.0, you only need to create a small snippet of RAML that you can then use to "overlay" the single specification the three environments will share - helping ensure the overall specification is the same in all environments.
+
+#### Overlays (Add in Titles, Descriptions, Etc.)
+
+Overlays are used to provide additional information such as descriptions or annotations to an existing specification without changing functionality. Let's assume we want to provide an overlay for the following RAML specification "api.raml":
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+/users:
+  get:
+```
+
+To create an overlay, we simply append `#%RAML 1.0` with the keyword `Overlay` and then reference the RAML specification it extends like so:
+
+```yaml
+#%RAML 1.0 Overlay
+usage: Technical Documentation
+extends: api.raml
+
+/users:
+  displayName: Users
+  description: Adding in technical documentation for the /users resource
+
+  get:
+    displayName: Get Users
+    description: Adding in technical documentation for the get method
+```
+
+As you can see, by using an overlay we are easily able to update or provide documentation for specific environments or in different languages.
+
+But again, when using the Overlay keyword we're not able to change any functionality, such as overwriting resources, methods, or the baseUri.
+
+```
+#%RAML 1.0 Overlay
+usage: Developer Environment
+extends: api.raml
+
+baseUri: http://dev.api.mydomain.com
+```
+
+Trying to do so instead returns back an error:
+
+(Picture Needed)
+
+#### Extensions (Modify Functionality)
+
+Instead, to change functionality we will want to use the Extension keyword, explicitly telling the RAML parser that we want to overwrite functionality as well. This will let us override resources, methods, and even the baseUri - letting us cater to the requirements of each of our different environments such as dev, QA, and production - as well as different aspects of functionality our API may make available for partners or internal developers.
+
+```
+#%RAML 1.0 Extension
+usage: Developer Environment
+extends: api.raml
+
+baseUri: http://dev.api.mydomain.com
+```
+
+As when using the Overlay declaration the original RAML spec is merged in, being overwritten by any updates we place in our extension:
+
+(Picture Needed)
+
+Overlays or Extensions are also a great way to keep vendor specific declarations, or annotations, separate from your master RAML specification - letting you meet your vendors needs or provide additional information without cluttering up your specification.
 
 ## Security
 
