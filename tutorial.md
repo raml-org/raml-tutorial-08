@@ -41,7 +41,7 @@ baseUri: http://api.samplehost.com
 
 ### RAML Basics
 
-The nice thing about using a tool like the API Designer is that it will automatically prefill the required aspects of your RAML file for you.  These are the:
+The nice thing about using a tool like the API Workbench is that it will automatically prefill the required aspects of your RAML file for you.  These are the:
 
 - RAML and version declaration
 - Your API Title
@@ -601,7 +601,135 @@ version: 1
 
 ## RAML Data Types
 
-(coming soon)
+An essential part of an API is its data that comes in and out. RAML offers a high degree of flexibility for you to decide how you want to describe payload data and does not pin point you on a specific format. JSON and XML are the most prominent, but RAML also provides another possibility to describe your data in a concise and powerful way.
+
+RAML data types can be used to define data inside: request and response body; and header, query, and URI parameters.  
+
+### Defining Types
+
+To declare a data type, first we need to declare it at the top of our spec under the `types` property:
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+types:
+  Person:
+    type: object
+    properties:
+      name:
+        type: string
+      city:
+        type: string
+      state:
+        type: string
+```
+
+And then we will pull it into where ever the API expects data using the `type` property:
+
+```yaml
+/resource:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type: Person
+```
+
+### Built-in Types
+
+### Multiple Inheritance
+
+### Syntactic Sugar
+
+### User-defined Facets
+
+In  addition to the data types built-in facets such as `minimum` or `maximum`, RAML provides a way to declare user-defined facets that define additional restrictions on a type.
+
+Here is an example that defines the capability to restrict the `state` property inside our `Person` data type to exclude specific states.
+
+```yaml
+#%RAML 1.0
+title: My API
+baseUri: http://api.mydomain.com
+version: 1
+
+types:
+  CustomState:
+    type: string
+    facets:
+      exclude:
+        type: string[]
+  Person:
+    type: object
+    properties:
+      name:
+        type: string
+      city:
+        type: string
+      state:
+        type: CustomState
+        exclude: [ CA, FL ]
+```
+
+Please bear in mind that user-defined facets by definition are not built into the RAML specifications, and hence they should be used for documentation only.
+
+### Using Your Existing Schemas  
+
+Before data types were introduced, payload data were defined using either JSON or XML schema. Although, data types can be very powerful there are cases where you still want to use JSON or XML schema. RAML does provide you with that degree of flexibility by integrating those into its data type system.
+
+The following example shows how to declare the data type Person in JSON schema.
+
+
+```yaml
+types:
+  Person:
+    {
+      "title": "Person Schema",
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        }
+      }
+    }
+```
+
+Of course, you can do the same on a body declaration.
+
+```yaml
+/resource:
+  get:
+    responses:
+      200:
+        body:
+          application/json:
+            type:
+              {
+                "title": "Person Schema",
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "city": {
+                    "type": "string"
+                  },
+                  "state": {
+                    "type": "string"
+                  }
+                }
+              }
+```
 
 ## Setting up Templates
 
@@ -627,8 +755,8 @@ version: 1
       200:
         body:
           application/json:
-            example: !include examples/resource_get.json
-            type: !include types/resource_get.json
+            example: !include examples/person.json
+            type: !include types/person.json
 ```
 
 ### ResourceTypes
@@ -723,7 +851,7 @@ Now the `/resource` does not have ANY properties being pulled in because we have
 
 ![](images/raml_015.png)
 
-But the second we call in one of the properties, we now have it's description and any underlying properties that we would delcared:
+But the second we call in one of the properties, we now have it's description and any underlying properties that we would declared:
 
 ```yaml
 /users:
@@ -789,7 +917,7 @@ Traits operate in a fairly similar fashion to resourceTypes except that they ope
 
 Traits are typically used for operations such as pagination, searching, or filtering the method data.
 
-To delcare a trait, first we need to declare it at the top of our spec under the `traits` property:
+To declare a trait, first we need to declare it at the top of our spec under the `traits` property:
 
 ```yaml
 #%RAML 1.0
