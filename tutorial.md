@@ -601,11 +601,11 @@ version: 1
 
 ## RAML Data Types
 
-An essential part of an API is its data that comes in and out. RAML offers a high degree of flexibility for you to decide how you want to describe payload data and does not pin point you on a specific format. JSON and XML are the most prominent, but RAML also provides another possibility to describe your data in a concise and powerful way.
+An essential part of an API is its data that comes in and out. RAML offers a high degree of flexibility for you to decide how you want to describe payload data and does not pin point you on a specific format. JSON and XML are the most prominent, but RAML also provides another possibility to describe your data in a more concise and powerful way.
 
 RAML data types can be used to define data inside: request and response body; and header, query, and URI parameters.  
 
-### Defining Types
+### A Simple Example
 
 To declare a data type, first we need to declare it at the top of our spec under the `types` property:
 
@@ -682,7 +682,6 @@ Please bear in mind that user-defined facets by definition are not built into th
 Before data types were introduced, payload data were defined using either JSON or XML schema. Although, data types can be very powerful there are cases where you still want to use JSON or XML schema. RAML does provide you with that degree of flexibility by integrating those into its data type system.
 
 The following example shows how to declare the data type Person in JSON schema.
-
 
 ```yaml
 types:
